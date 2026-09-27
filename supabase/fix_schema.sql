@@ -1,12 +1,13 @@
 -- ============================================================================
--- FIND BACK WITH AI - DEFINITIVE DATABASE REPAIR & RLS MIGRATION
--- Fixes error 42703 (column "user_id" does not exist) safely without data loss
+-- FIND BACK WITH AI - DEFINITIVE DATABASE REPAIR & HARDENED RLS MIGRATION
+-- Fixes error 42703 (column "user_id" does not exist) safely without data loss.
+-- Enforces strict ownership: no user can modify/delete guest or legacy records.
 -- ============================================================================
 
 -- 1. Ensure the pgvector extension is enabled
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- 2. Safely add missing architectural columns to public.items without modifying existing columns
+-- 2. Safely add missing columns to public.items without modifying existing records
 ALTER TABLE public.items 
   ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION,
@@ -15,13 +16,13 @@ ALTER TABLE public.items
   ADD COLUMN IF NOT EXISTS contact_email VARCHAR(255),
   ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(64);
 
--- 3. Relax legacy not-null constraints so modern web and mobile reports can be submitted seamlessly
+-- 3. Relax legacy constraints from earlier schema
 ALTER TABLE public.items 
   ALTER COLUMN zone_id DROP NOT NULL,
   ALTER COLUMN reporter_email DROP NOT NULL,
   ALTER COLUMN reporter_name DROP NOT NULL;
 
--- 4. Backfill new columns from legacy columns for all existing records so no data is lost
+-- 4. Backfill new columns from legacy columns for all existing records
 UPDATE public.items 
 SET 
   location_name = COALESCE(location_name, location_detail),
@@ -29,23 +30,23 @@ SET
   contact_phone = COALESCE(contact_phone, reporter_phone)
 WHERE location_name IS NULL OR contact_email IS NULL OR contact_phone IS NULL;
 
--- 5. Upgrade embedding column to vector(768) to support Gemini text-embedding-004
+-- 5. Upgrade embedding column to vector(768) for Gemini multimodal vectors
 DROP INDEX IF EXISTS public.items_embedding_idx;
 ALTER TABLE public.items 
   ALTER COLUMN embedding TYPE vector(768);
 
--- Create HNSW cosine similarity index for lightning fast vector searches
+-- Create HNSW cosine similarity index
 CREATE INDEX IF NOT EXISTS items_embedding_idx ON public.items 
 USING hnsw (embedding vector_cosine_ops)
 WITH (m = 16, ef_construction = 64);
 
--- Spatial and status indexes
+-- Create supporting indexes
 CREATE INDEX IF NOT EXISTS items_user_id_idx ON public.items (user_id);
 CREATE INDEX IF NOT EXISTS items_type_idx ON public.items (type);
 CREATE INDEX IF NOT EXISTS items_status_idx ON public.items (status);
 CREATE INDEX IF NOT EXISTS items_created_at_idx ON public.items (created_at DESC);
 
--- 6. Clean up existing policies to prevent conflicts, invalid references, or duplicate policy errors
+-- 6. Clean up any existing policies on public.items to prevent duplicate or conflicting errors
 DROP POLICY IF EXISTS "Public items are viewable by everyone" ON public.items;
 DROP POLICY IF EXISTS "Users can report items" ON public.items;
 DROP POLICY IF EXISTS "Users and guests can report items" ON public.items;
@@ -59,37 +60,43 @@ DROP POLICY IF EXISTS "Enable update for users based on email" ON public.items;
 -- 7. Ensure Row Level Security is active
 ALTER TABLE public.items ENABLE ROW LEVEL SECURITY;
 
--- 8. Apply production Row Level Security policies
+-- 8. Apply Hardened Production Row Level Security Policies
 
--- A. SELECT: Public items viewable by everyone (both authenticated users and guests)
+-- A. SELECT: Public items are viewable by everyone (both authenticated users and guests)
 CREATE POLICY "Public items are viewable by everyone" 
 ON public.items FOR SELECT 
 USING (true);
 
--- B. INSERT: Both authenticated members and anonymous guests can submit lost/found reports
+-- B. INSERT: Strict identity validation
+-- - If authenticated: MUST store their own auth.uid() in user_id (cannot spoof another user_id or post as NULL)
+-- - If guest: MUST store NULL in user_id (cannot spoof any user_id)
 CREATE POLICY "Users and guests can report items" 
 ON public.items FOR INSERT 
 WITH CHECK (
-  (auth.uid() IS NULL AND user_id IS NULL)
+  (auth.uid() IS NOT NULL AND user_id = auth.uid())
   OR
-  (auth.uid() IS NOT NULL AND (user_id = auth.uid() OR user_id IS NULL))
+  (auth.uid() IS NULL AND user_id IS NULL)
 );
 
--- C. UPDATE: Only the verified owner of the item can update their listing
+-- C. UPDATE: Strictly restricted to verified owner
+-- Authenticated users can ONLY modify records where user_id = auth.uid().
+-- Records where user_id IS NULL (guest / legacy items) CANNOT be updated by any standard user.
 CREATE POLICY "Users can update own items" 
 ON public.items FOR UPDATE 
 USING (
-  auth.uid() IS NOT NULL AND auth.uid() = user_id
+  auth.uid() IS NOT NULL AND user_id = auth.uid()
 )
 WITH CHECK (
-  auth.uid() IS NOT NULL AND auth.uid() = user_id
+  auth.uid() IS NOT NULL AND user_id = auth.uid()
 );
 
--- D. DELETE: Only the verified owner of the item can delete their listing
+-- D. DELETE: Strictly restricted to verified owner
+-- Authenticated users can ONLY delete records where user_id = auth.uid().
+-- Records where user_id IS NULL (guest / legacy items) CANNOT be deleted by any standard user.
 CREATE POLICY "Users can delete own items" 
 ON public.items FOR DELETE 
 USING (
-  auth.uid() IS NOT NULL AND auth.uid() = user_id
+  auth.uid() IS NOT NULL AND user_id = auth.uid()
 );
 
 -- 9. Matches Table & Policies
@@ -108,7 +115,7 @@ ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Matches are viewable by everyone" ON public.matches;
 CREATE POLICY "Matches are viewable by everyone" ON public.matches FOR SELECT USING (true);
 
--- 10. Vector Similarity Search Function
+-- 10. Vector Similarity Search Stored Procedure
 CREATE OR REPLACE FUNCTION public.match_items (
     query_embedding vector(768),
     match_threshold DOUBLE PRECISION DEFAULT 0.55,
