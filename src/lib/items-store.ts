@@ -230,6 +230,30 @@ export async function findMatchesForItem(targetItem: Item, threshold = 0.55): Pr
 
     const simScore = cosineSimilarity(targetEmbedding, candidateEmbedding);
 
+    // Calculate category alignment bonus
+    const isSameCategory = targetItem.category.toLowerCase() === candidate.category.toLowerCase();
+    const categoryBonus = isSameCategory ? 0.25 : 0;
+
+    // Calculate shared keyword overlap
+    const targetWords = new Set(
+      `${targetItem.title} ${targetItem.description}`
+        .toLowerCase()
+        .replace(/[^\w\s]/g, '')
+        .split(/\s+/)
+        .filter((w) => w.length > 2)
+    );
+    const candidateWords = `${candidate.title} ${candidate.description}`
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/)
+      .filter((w) => w.length > 2);
+    
+    let sharedWordCount = 0;
+    for (const w of candidateWords) {
+      if (targetWords.has(w)) sharedWordCount++;
+    }
+    const lexicalBonus = Math.min(0.25, sharedWordCount * 0.04);
+
     // Calculate geo distance if coordinates exist on both
     let geoDistance: number | undefined;
     let proximityBonus = 0;
@@ -245,22 +269,24 @@ export async function findMatchesForItem(targetItem: Item, threshold = 0.55): Pr
         candidate.latitude,
         candidate.longitude
       );
-      if (geoDistance < 1.0) proximityBonus = 0.15;
-      else if (geoDistance < 5.0) proximityBonus = 0.08;
+      if (geoDistance < 1.0) proximityBonus = 0.2;
+      else if (geoDistance < 5.0) proximityBonus = 0.1;
     }
 
-    const finalScore = Math.min(1.0, simScore * 0.85 + proximityBonus);
+    const rawScore = simScore * 0.45 + categoryBonus + lexicalBonus + proximityBonus;
+    const finalScore = Math.min(0.98, Math.max(0.1, rawScore));
 
-    if (finalScore >= threshold) {
+    if (finalScore >= (threshold || 0.40)) {
       // Build reasoning breakdown
       const reasons: string[] = [];
-      if (targetItem.category === candidate.category) {
+      if (isSameCategory) {
         reasons.push(`Matching category: ${targetItem.category}`);
       }
-      if (simScore > 0.7) {
+      if (sharedWordCount > 0) {
+        reasons.push(`${sharedWordCount} shared visual/descriptive keywords`);
+      }
+      if (simScore > 0.4) {
         reasons.push('High visual and semantic feature alignment');
-      } else if (simScore > 0.5) {
-        reasons.push('Moderate descriptive text correlation');
       }
       if (geoDistance !== undefined && geoDistance <= 2.0) {
         reasons.push(`Geographic proximity within ${geoDistance.toFixed(1)} km`);
