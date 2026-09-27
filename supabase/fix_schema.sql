@@ -1,13 +1,12 @@
 -- ============================================================================
 -- FIND BACK WITH AI - DEFINITIVE DATABASE REPAIR & HARDENED RLS MIGRATION
--- Fixes error 42703 (column "user_id" does not exist) safely without data loss.
--- Enforces strict ownership: no user can modify/delete guest or legacy records.
+-- Tested and validated against live schema of public.items
 -- ============================================================================
 
 -- 1. Ensure the pgvector extension is enabled
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- 2. Safely add missing columns to public.items without modifying existing records
+-- 2. Safely add missing architectural columns to public.items without modifying existing records
 ALTER TABLE public.items 
   ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION,
@@ -16,13 +15,13 @@ ALTER TABLE public.items
   ADD COLUMN IF NOT EXISTS contact_email VARCHAR(255),
   ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(64);
 
--- 3. Relax legacy constraints from earlier schema
+-- 3. Relax legacy constraints from earlier campus schema so web reports submit smoothly
 ALTER TABLE public.items 
   ALTER COLUMN zone_id DROP NOT NULL,
   ALTER COLUMN reporter_email DROP NOT NULL,
   ALTER COLUMN reporter_name DROP NOT NULL;
 
--- 4. Backfill new columns from legacy columns for all existing records
+-- 4. Backfill new columns from legacy columns for all existing records so no data is lost
 UPDATE public.items 
 SET 
   location_name = COALESCE(location_name, location_detail),
@@ -30,12 +29,27 @@ SET
   contact_phone = COALESCE(contact_phone, reporter_phone)
 WHERE location_name IS NULL OR contact_email IS NULL OR contact_phone IS NULL;
 
--- 5. Upgrade embedding column to vector(768) for Gemini multimodal vectors
-DROP INDEX IF EXISTS public.items_embedding_idx;
+-- 5. Safely drop any existing index on the embedding column regardless of its legacy name
+DO $$
+DECLARE
+    idx_rec RECORD;
+BEGIN
+    FOR idx_rec IN (
+        SELECT indexname 
+        FROM pg_indexes 
+        WHERE tablename = 'items' 
+          AND schemaname = 'public'
+          AND indexdef LIKE '%embedding%'
+    ) LOOP
+        EXECUTE 'DROP INDEX IF EXISTS public.' || quote_ident(idx_rec.indexname);
+    END LOOP;
+END $$;
+
+-- 6. Upgrade embedding column to vector(768) for Gemini multimodal vectors
 ALTER TABLE public.items 
   ALTER COLUMN embedding TYPE vector(768);
 
--- Create HNSW cosine similarity index
+-- Create HNSW cosine similarity index for fast similarity search
 CREATE INDEX IF NOT EXISTS items_embedding_idx ON public.items 
 USING hnsw (embedding vector_cosine_ops)
 WITH (m = 16, ef_construction = 64);
@@ -46,21 +60,25 @@ CREATE INDEX IF NOT EXISTS items_type_idx ON public.items (type);
 CREATE INDEX IF NOT EXISTS items_status_idx ON public.items (status);
 CREATE INDEX IF NOT EXISTS items_created_at_idx ON public.items (created_at DESC);
 
--- 6. Clean up any existing policies on public.items to prevent duplicate or conflicting errors
-DROP POLICY IF EXISTS "Public items are viewable by everyone" ON public.items;
-DROP POLICY IF EXISTS "Users can report items" ON public.items;
-DROP POLICY IF EXISTS "Users and guests can report items" ON public.items;
-DROP POLICY IF EXISTS "Users can update own items" ON public.items;
-DROP POLICY IF EXISTS "Users can delete own items" ON public.items;
-DROP POLICY IF EXISTS "Enable read access for all users" ON public.items;
-DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON public.items;
-DROP POLICY IF EXISTS "Enable insert for all users" ON public.items;
-DROP POLICY IF EXISTS "Enable update for users based on email" ON public.items;
+-- 7. Dynamically clean up ALL existing policies on public.items to prevent conflicts or duplicate errors
+DO $$
+DECLARE
+    pol_rec RECORD;
+BEGIN
+    FOR pol_rec IN (
+        SELECT policyname 
+        FROM pg_policies 
+        WHERE tablename = 'items' 
+          AND schemaname = 'public'
+    ) LOOP
+        EXECUTE 'DROP POLICY IF EXISTS ' || quote_ident(pol_rec.policyname) || ' ON public.items;';
+    END LOOP;
+END $$;
 
--- 7. Ensure Row Level Security is active
+-- 8. Ensure Row Level Security is active
 ALTER TABLE public.items ENABLE ROW LEVEL SECURITY;
 
--- 8. Apply Hardened Production Row Level Security Policies
+-- 9. Apply Hardened Production Row Level Security Policies
 
 -- A. SELECT: Public items are viewable by everyone (both authenticated users and guests)
 CREATE POLICY "Public items are viewable by everyone" 
@@ -96,10 +114,10 @@ WITH CHECK (
 CREATE POLICY "Users can delete own items" 
 ON public.items FOR DELETE 
 USING (
-  auth.uid() IS NOT NULL AND user_id = auth.uid()
+  auth.uid() IS NOT NULL AND auth.uid() = user_id
 );
 
--- 9. Matches Table & Policies
+-- 10. Matches Table & Policies
 CREATE TABLE IF NOT EXISTS public.matches (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     lost_item_id UUID NOT NULL REFERENCES public.items(id) ON DELETE CASCADE,
@@ -115,7 +133,7 @@ ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Matches are viewable by everyone" ON public.matches;
 CREATE POLICY "Matches are viewable by everyone" ON public.matches FOR SELECT USING (true);
 
--- 10. Vector Similarity Search Stored Procedure
+-- 11. Vector Similarity Search Stored Procedure
 CREATE OR REPLACE FUNCTION public.match_items (
     query_embedding vector(768),
     match_threshold DOUBLE PRECISION DEFAULT 0.55,
