@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Item, ItemType, ItemMatch } from '@/types';
 import GoogleMapViewer from '@/components/maps/GoogleMapViewer';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 interface ItemReportModalProps {
   isOpen: boolean;
@@ -83,6 +84,18 @@ export default function ItemReportModal({
     setAiStatus('Extracting visual features with Gemini Vision AI...');
 
     try {
+      let currentUserId: string | undefined = undefined;
+      if (isSupabaseConfigured && supabase) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            currentUserId = user.id;
+          }
+        } catch {
+          // ignore auth check error
+        }
+      }
+
       const response = await fetch('/api/items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -97,6 +110,7 @@ export default function ItemReportModal({
           location_name: locationName,
           contact_email: contactEmail,
           contact_phone: contactPhone,
+          user_id: currentUserId,
         }),
       });
 

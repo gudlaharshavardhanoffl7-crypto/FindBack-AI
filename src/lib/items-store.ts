@@ -160,8 +160,18 @@ export async function getItemById(id: string): Promise<Item | null> {
 }
 
 export async function saveItem(item: Omit<Item, 'id' | 'created_at' | 'status'> & { id?: string }): Promise<Item> {
+  // Generate RFC4122 v4 UUID for database compatibility
+  const generatedId =
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          const v = c === 'x' ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        });
+
   const newItem: Item = {
-    id: item.id || `item-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    id: item.id || generatedId,
     type: item.type,
     title: item.title,
     category: item.category,
@@ -180,10 +190,22 @@ export async function saveItem(item: Omit<Item, 'id' | 'created_at' | 'status'> 
 
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('items').insert([newItem]).select().single();
+      const dbPayload: any = {
+        ...newItem,
+        // Backward compatibility fields for legacy campus schema
+        location_detail: newItem.location_name || null,
+        reporter_email: newItem.contact_email || null,
+        reporter_phone: newItem.contact_phone || null,
+        reporter_name: newItem.contact_email ? newItem.contact_email.split('@')[0] : 'Community Reporter',
+        zone_id: 'metropolitan',
+      };
+
+      const { data, error } = await supabase.from('items').insert([dbPayload]).select().single();
       if (!error && data) {
         memoryItems.unshift(data as Item);
         return data as Item;
+      } else if (error) {
+        console.warn('Supabase insert notice, falling back to local store:', error.message);
       }
     } catch (err) {
       console.warn('Supabase insert failed, storing in memory store:', err);
