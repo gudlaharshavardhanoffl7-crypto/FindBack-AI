@@ -1,11 +1,9 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+import { Inter_Tight } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+import AppShell from '@/components/layout/AppShell';
 import CustomCursor from '@/components/ui/CustomCursor';
-import GlobalLoader from '@/components/ui/GlobalLoader';
-import DynamicZeroGravity from '@/components/canvas/DynamicZeroGravity';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -19,8 +17,15 @@ const geistMono = localFont({
   weight: '100 900',
 });
 
+const interTight = Inter_Tight({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-inter-tight',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'Find Back with AI - Multimodal Property Recovery System',
+  title: 'Find Back with AI - Smart Item Recovery',
   description:
     'High-dimensional vector embedding search, Gemini multimodal vision decomposition, and coordinate mapping for lost physical property.',
   icons: {
@@ -37,27 +42,18 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://d2ol7oe51mr4n9.cloudfront.net" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#06090e] text-slate-100 min-h-screen selection:bg-sky-500/30 selection:text-sky-200 relative`}
+        className={`${geistSans.variable} ${geistMono.variable} ${interTight.variable} antialiased bg-[#06090e] text-slate-100 min-h-screen selection:bg-sky-500/30 selection:text-sky-200 relative`}
       >
         {/* Custom Tracking Cursor */}
         <CustomCursor />
 
-        {/* Global Loading Screen & Entrance Reveal */}
-        <GlobalLoader>
-          {/* Zero-Gravity 3D Background with Mouse Parallax & 7 Stylized Objects */}
-          <DynamicZeroGravity />
-
-          {/* Glassmorphism Header / Navbar */}
-          <Navbar />
-
-          {/* Main Viewport Content */}
-          <main className="flex-1 relative z-10">{children}</main>
-
-          {/* Glassmorphism Footer */}
-          <Footer />
-        </GlobalLoader>
+        {/* Dynamic App Shell */}
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

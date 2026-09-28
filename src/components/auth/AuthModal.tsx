@@ -1,159 +1,146 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Phone, ShieldCheck, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { X, Mail, Lock, ShieldCheck, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (user: { id: string; email?: string; phone?: string; name: string }) => void;
+  onSuccess?: (user: { id: string; email: string; name: string }) => void;
+  redirectToDashboard?: boolean;
 }
 
-export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
-  const [authMethod, setAuthMethod] = useState<'phone' | 'email'>('phone');
-  const [phone, setPhone] = useState('');
-  const [otpCode, setOtpCode] = useState('');
+export default function AuthModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  redirectToDashboard = true,
+}: AuthModalProps) {
+  const router = useRouter();
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [step, setStep] = useState<'input' | 'otp' | 'success'>('input');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSendOtp = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
-    if (!phone || phone.length < 9) {
-      setErrorMsg('Please enter a valid international phone number.');
+
+    // Strict email validation
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    // Password validation
+    if (!password || password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters long.');
       return;
     }
 
     setLoading(true);
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { error } = await supabase.auth.signInWithOtp({ phone });
-        if (error) throw error;
-      } catch (err: any) {
-        console.warn('Supabase SMS OTP trigger failed, proceeding with demo verification code:', err);
-      }
-    }
-    setLoading(false);
-    setStep('otp');
-  };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg('');
-    if (!otpCode || otpCode.length < 4) {
-      setErrorMsg('Please enter the 6-digit verification code.');
-      return;
-    }
-
-    setLoading(true);
     let authenticatedUser = {
-      id: `usr-ph-${Date.now().toString(36)}`,
-      phone,
-      name: `User ${phone.slice(-4)}`,
+      id: `usr-${Date.now().toString(36)}`,
+      email: trimmedEmail,
+      name: trimmedEmail.split('@')[0],
     };
 
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data, error } = await supabase.auth.verifyOtp({
-          phone,
-          token: otpCode,
-          type: 'sms',
-        });
-        if (!error && data.user) {
-          authenticatedUser = {
-            id: data.user.id,
-            phone: data.user.phone || phone,
-            name: `User ${phone.slice(-4)}`,
-          };
-        }
-      } catch (err) {
-        console.warn('Supabase OTP verification fallback:', err);
-      }
-    }
-
-    setLoading(false);
-    setStep('success');
-    setTimeout(() => {
-      onSuccess(authenticatedUser);
-      onClose();
-      setStep('input');
-      setPhone('');
-      setOtpCode('');
-    }, 1000);
-  };
-
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg('');
-    if (!email || !email.includes('@')) {
-      setErrorMsg('Please provide a valid email address.');
-      return;
-    }
-
-    setLoading(true);
-    let authenticatedUser = {
-      id: `usr-em-${Date.now().toString(36)}`,
-      email,
-      name: email.split('@')[0],
-    };
-
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password: password || 'TestPassword123!',
-        });
-        if (error) {
-          // Try sign up if sign in fails
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email,
-            password: password || 'TestPassword123!',
+        if (mode === 'signin') {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: trimmedEmail,
+            password,
           });
-          if (signUpError) throw signUpError;
-          if (signUpData.user) {
+
+          if (error) {
+            // Check for invalid credentials
+            if (error.message.toLowerCase().includes('invalid login credentials')) {
+              setErrorMsg('Invalid email or password. Please verify and try again.');
+              setLoading(false);
+              return;
+            }
+            throw error;
+          }
+
+          if (data.user) {
             authenticatedUser = {
-              id: signUpData.user.id,
-              email: signUpData.user.email || email,
-              name: email.split('@')[0],
+              id: data.user.id,
+              email: data.user.email || trimmedEmail,
+              name: (data.user.email || trimmedEmail).split('@')[0],
             };
           }
-        } else if (data.user) {
-          authenticatedUser = {
-            id: data.user.id,
-            email: data.user.email || email,
-            name: email.split('@')[0],
-          };
+        } else {
+          // Sign up mode
+          const { data, error } = await supabase.auth.signUp({
+            email: trimmedEmail,
+            password,
+          });
+
+          if (error) {
+            setErrorMsg(error.message);
+            setLoading(false);
+            return;
+          }
+
+          if (data.user) {
+            authenticatedUser = {
+              id: data.user.id,
+              email: data.user.email || trimmedEmail,
+              name: (data.user.email || trimmedEmail).split('@')[0],
+            };
+          }
         }
       } catch (err: any) {
-        console.warn('Supabase email auth notice:', err);
+        console.warn('Supabase authentication notice:', err);
+        setErrorMsg(err.message || 'Authentication failed. Please try again.');
+        setLoading(false);
+        return;
       }
     }
 
     setLoading(false);
-    setStep('success');
+    setIsSuccess(true);
+
     setTimeout(() => {
-      onSuccess(authenticatedUser);
+      if (onSuccess) {
+        onSuccess(authenticatedUser);
+      }
       onClose();
-      setStep('input');
+      setIsSuccess(false);
       setEmail('');
       setPassword('');
-    }, 1000);
+
+      if (redirectToDashboard) {
+        router.push('/dashboard');
+      }
+    }, 800);
   };
 
   const handleDemoSignIn = () => {
-    onSuccess({
+    const demoUser = {
       id: 'demo-analyst-01',
       email: 'analyst@findback.ai',
       name: 'Recovery Officer',
-    });
+    };
+
+    if (onSuccess) {
+      onSuccess(demoUser);
+    }
     onClose();
+
+    if (redirectToDashboard) {
+      router.push('/dashboard');
+    }
   };
 
   return (
@@ -165,7 +152,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/75 backdrop-blur-md"
+          className="fixed inset-0 bg-black/80 backdrop-blur-md"
         />
 
         {/* Modal Window */}
@@ -174,7 +161,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 16 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-md glass-panel rounded-xl p-7 text-slate-100 z-10 shadow-2xl border border-white/10"
+          className="relative w-full max-w-md bg-[#0c121e] text-slate-100 z-10 shadow-2xl border border-white/10 rounded-2xl p-7"
         >
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
@@ -183,210 +170,125 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 <ShieldCheck className="w-4 h-4 text-sky-400" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-white tracking-tight">Identity Authentication</h3>
-                <p className="text-xs text-slate-400">Secure access to lost property index</p>
+                <h3 className="text-base font-semibold text-white tracking-tight">
+                  {mode === 'signin' ? 'Sign In to Your Account' : 'Create an Account'}
+                </h3>
+                <p className="text-xs text-slate-400">Find Back with AI Authentication</p>
               </div>
             </div>
             <button
               onClick={onClose}
               className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Close dialog"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          {step === 'success' ? (
+          {isSuccess ? (
             <div className="py-8 flex flex-col items-center text-center">
-              <div className="w-12 h-12 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-3">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-3">
                 <CheckCircle2 className="w-6 h-6 text-emerald-400" />
               </div>
-              <h4 className="text-base font-semibold text-white mb-1">Session Verified</h4>
-              <p className="text-xs text-slate-400">Loading your encrypted recovery catalog...</p>
+              <h4 className="text-base font-semibold text-white mb-1">Authenticated Successfully</h4>
+              <p className="text-xs text-slate-400">Redirecting to your recovery dashboard...</p>
             </div>
           ) : (
             <>
-              {/* Method Switcher Tabs */}
-              <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-900/80 border border-white/10 rounded-lg mb-6">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMethod('phone');
-                    setStep('input');
-                    setErrorMsg('');
-                  }}
-                  className={`flex items-center justify-center space-x-2 py-2 px-3 text-xs font-medium rounded-md transition-all ${
-                    authMethod === 'phone'
-                      ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Phone OTP</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMethod('email');
-                    setStep('input');
-                    setErrorMsg('');
-                  }}
-                  className={`flex items-center justify-center space-x-2 py-2 px-3 text-xs font-medium rounded-md transition-all ${
-                    authMethod === 'email'
-                      ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>Email Account</span>
-                </button>
-              </div>
-
+              {/* Error Message */}
               {errorMsg && (
-                <div className="mb-4 p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300">
+                <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300">
                   {errorMsg}
                 </div>
               )}
 
-              {/* Phone OTP Mode */}
-              {authMethod === 'phone' && (
-                <>
-                  {step === 'input' ? (
-                    <form onSubmit={handleSendOtp} className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                          Phone Number (with Country Code)
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="tel"
-                            placeholder="+1 (555) 000-0000"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            className="w-full glass-input rounded-lg px-3.5 py-2.5 text-sm"
-                            required
-                          />
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-1">
-                          A 6-digit one-time authentication passcode will be dispatched.
-                        </p>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full flex items-center justify-center space-x-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold py-2.5 px-4 rounded-lg transition-colors text-xs"
-                      >
-                        {loading ? (
-                          <span>Processing...</span>
-                        ) : (
-                          <>
-                            <span>Request Verification Code</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </>
-                        )}
-                      </button>
-                    </form>
-                  ) : (
-                    <form onSubmit={handleVerifyOtp} className="space-y-4">
-                      <div>
-                        <div className="flex justify-between items-center mb-1.5">
-                          <label className="text-xs font-medium text-slate-300">
-                            Enter Verification Code
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => setStep('input')}
-                            className="text-[11px] text-sky-400 hover:underline"
-                          >
-                            Edit Phone
-                          </button>
-                        </div>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            maxLength={6}
-                            placeholder="6-digit code (e.g. 123456)"
-                            value={otpCode}
-                            onChange={(e) => setOtpCode(e.target.value)}
-                            className="w-full glass-input rounded-lg px-3.5 py-2.5 text-sm tracking-widest text-center font-mono"
-                            required
-                            autoFocus
-                          />
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-1 text-center">
-                          Sent to {phone}. Enter any 6 digits for instant sandbox verification.
-                        </p>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full flex items-center justify-center space-x-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold py-2.5 px-4 rounded-lg transition-colors text-xs"
-                      >
-                        {loading ? <span>Validating...</span> : <span>Confirm & Connect</span>}
-                      </button>
-                    </form>
-                  )}
-                </>
-              )}
-
-              {/* Email Authentication Mode */}
-              {authMethod === 'email' && (
-                <form onSubmit={handleEmailAuth} className="space-y-3.5">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                      Email Address
-                    </label>
+              {/* Strict Email Address + Password Form */}
+              <form onSubmit={handleAuth} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1.5" htmlFor="auth-email">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
+                      id="auth-email"
                       type="email"
-                      placeholder="recovery.agent@domain.com"
+                      placeholder="student@university.edu"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full glass-input rounded-lg px-3.5 py-2 text-sm"
+                      className="w-full bg-slate-900/90 border border-white/10 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
                       required
+                      autoComplete="email"
                     />
                   </div>
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-xs font-medium text-slate-300" htmlFor="auth-password">
                       Password
                     </label>
+                  </div>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
+                      id="auth-password"
                       type="password"
                       placeholder="••••••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full glass-input rounded-lg px-3.5 py-2 text-sm"
+                      className="w-full bg-slate-900/90 border border-white/10 rounded-lg pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
                       required
+                      autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                     />
                   </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    {mode === 'signup' ? 'Minimum 6 characters required.' : 'Enter your registered password.'}
+                  </p>
+                </div>
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full mt-2 flex items-center justify-center space-x-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold py-2.5 px-4 rounded-lg transition-colors text-xs"
-                  >
-                    {loading ? (
-                      <span>Authenticating...</span>
-                    ) : (
-                      <>
-                        <span>Sign In / Create Account</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center space-x-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-2.5 px-4 rounded-lg transition-colors text-xs shadow-lg mt-2 cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? (
+                    <span>Authenticating...</span>
+                  ) : (
+                    <>
+                      <span>{mode === 'signin' ? 'Login' : 'Create Account'}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </>
+                  )}
+                </button>
+              </form>
 
-              {/* Fast Demo Access Button */}
+              {/* Toggle Mode */}
+              <div className="mt-4 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode(mode === 'signin' ? 'signup' : 'signin');
+                    setErrorMsg('');
+                  }}
+                  className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
+                >
+                  {mode === 'signin'
+                    ? "Don't have an account? Sign up"
+                    : 'Already have an account? Sign in'}
+                </button>
+              </div>
+
+              {/* Fast Sandbox Evaluation Access */}
               <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-[11px] text-slate-500">Need immediate evaluation access?</span>
+                <span className="text-[11px] text-slate-500">Need instant evaluation access?</span>
                 <button
                   type="button"
                   onClick={handleDemoSignIn}
                   className="text-xs text-sky-400 hover:text-sky-300 font-medium transition-colors"
                 >
-                  Quick Guest Access →
+                  Quick Demo Access →
                 </button>
               </div>
             </>

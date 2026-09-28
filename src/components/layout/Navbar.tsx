@@ -17,8 +17,7 @@ import AuthModal from '@/components/auth/AuthModal';
 interface UserState {
   id: string;
   name: string;
-  email?: string;
-  phone?: string;
+  email: string;
 }
 
 export default function Navbar() {
@@ -28,7 +27,7 @@ export default function Navbar() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  // Initial dummy notifications about AI vector matches
+  // Initial notifications about AI vector matches
   const [notifications, setNotifications] = useState([
     {
       id: 'notif-1',
@@ -48,6 +47,7 @@ export default function Navbar() {
 
   const navLinks = [
     { label: 'Home', href: '/' },
+    { label: 'Dashboard', href: '/dashboard' },
     { label: 'Lost Log', href: '/lost' },
     { label: 'Found Log', href: '/found' },
     { label: 'Matches', href: '/matches' },
@@ -104,7 +104,7 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Right Action Hub: Notification Icon (BEFORE Profile), then Profile Icon at ABSOLUTE RIGHT */}
+          {/* Right Action Hub: Notification Icon, then Profile/Login Icon */}
           <div className="flex items-center space-x-3">
             {/* Quick Action Button */}
             <Link
@@ -115,7 +115,7 @@ export default function Navbar() {
               <span>Report Item</span>
             </Link>
 
-            {/* Notification Icon - placed right before Profile */}
+            {/* Notification Icon */}
             <div className="relative">
               <button
                 type="button"
@@ -123,7 +123,7 @@ export default function Navbar() {
                   setNotificationsOpen(!notificationsOpen);
                   setProfileDropdownOpen(false);
                 }}
-                className="relative w-9 h-9 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+                className="relative w-9 h-9 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer"
                 aria-label="View notifications"
               >
                 <Bell className="w-4 h-4" />
@@ -143,7 +143,7 @@ export default function Navbar() {
                     {unreadCount > 0 && (
                       <button
                         onClick={handleMarkAllRead}
-                        className="text-[11px] text-sky-400 hover:underline"
+                        className="text-[11px] text-sky-400 hover:underline cursor-pointer"
                       >
                         Mark all read
                       </button>
@@ -175,7 +175,7 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Profile Icon - placed at the ABSOLUTE RIGHT */}
+            {/* Profile / Login Icon at ABSOLUTE RIGHT */}
             <div className="relative">
               {currentUser ? (
                 <button
@@ -184,7 +184,7 @@ export default function Navbar() {
                     setProfileDropdownOpen(!profileDropdownOpen);
                     setNotificationsOpen(false);
                   }}
-                  className="w-9 h-9 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-300 font-semibold text-xs hover:border-sky-300 transition-colors"
+                  className="w-9 h-9 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-300 font-semibold text-xs hover:border-sky-300 transition-colors cursor-pointer"
                   aria-label="User profile"
                 >
                   {currentUser.name.slice(0, 2).toUpperCase()}
@@ -193,10 +193,11 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setAuthModalOpen(true)}
-                  className="w-9 h-9 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+                  className="h-9 px-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center space-x-1.5 text-slate-300 hover:text-white transition-colors cursor-pointer text-xs font-medium"
                   aria-label="Sign in"
                 >
-                  <User className="w-4 h-4" />
+                  <User className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Login</span>
                 </button>
               )}
 
@@ -206,7 +207,7 @@ export default function Navbar() {
                   <div className="pb-3 border-b border-white/10 mb-3">
                     <p className="text-xs font-semibold text-white truncate">{currentUser.name}</p>
                     <p className="text-[11px] text-slate-400 truncate">
-                      {currentUser.email || currentUser.phone || 'Authenticated User'}
+                      {currentUser.email}
                     </p>
                     <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
                       Active Member
@@ -214,6 +215,14 @@ export default function Navbar() {
                   </div>
 
                   <div className="space-y-1">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                    >
+                      <Layers className="w-3.5 h-3.5 text-sky-400" />
+                      <span>Recovery Dashboard</span>
+                    </Link>
                     <Link
                       href="/lost"
                       onClick={() => setProfileDropdownOpen(false)}
@@ -235,7 +244,7 @@ export default function Navbar() {
                   <div className="mt-3 pt-3 border-t border-white/10">
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs text-rose-400 hover:bg-rose-500/10 transition-colors"
+                      className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>Sign Out</span>
@@ -248,13 +257,14 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Authentication Modal */}
+      {/* Authentication Modal (Email + Password) */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onSuccess={(user) => {
           setCurrentUser(user);
         }}
+        redirectToDashboard={false}
       />
     </>
   );

@@ -1,0 +1,820 @@
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import AuthModal from '@/components/auth/AuthModal';
+import ItemReportModal from '@/components/items/ItemReportModal';
+import { ItemType } from '@/types';
+
+const VIDEO_URL =
+  'https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/45567745-d826-44a2-a5ce-7ef670944e60.mp4';
+
+const CUES = [
+  [0.0, 0.0, 0.15, 0.23],
+  [0.35, 0.43, 0.57, 0.65],
+  [0.77, 0.85, 1.1, 1.2],
+];
+
+const DRIFT = 22; // px of counter-scroll travel per panel
+const EASE = 0.08;
+
+export default function ScrollScrubbedLanding() {
+  const router = useRouter();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const bootBarRef = useRef<HTMLElement | null>(null);
+  const meterRef = useRef<HTMLElement | null>(null);
+
+  const [bootPctText, setBootPctText] = useState('LOADING 0%');
+  const [bootDone, setBootDone] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+
+  // Modals state
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportType, setReportType] = useState<ItemType>('lost');
+
+  // Panel refs
+  const panel0Ref = useRef<HTMLElement | null>(null);
+  const panel1Ref = useRef<HTMLElement | null>(null);
+  const panel2Ref = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    let isReady = false;
+    let rafId: number | null = null;
+    let targetProgress = 0;
+    let currentProgress = 0;
+    let seekAt = 0;
+
+    const clip = videoRef.current;
+    const bootBar = bootBarRef.current;
+    const meter = meterRef.current;
+    const panels = [panel0Ref.current, panel1Ref.current, panel2Ref.current];
+
+    function setBootProgress(pct: number) {
+      const p = Math.max(0, Math.min(1, pct));
+      if (bootBar) {
+        bootBar.style.transform = 'scaleX(' + p + ')';
+      }
+      setBootPctText('LOADING ' + Math.round(p * 100) + '%');
+    }
+
+    function start() {
+      if (isReady) return;
+      isReady = true;
+      unlockVideo();
+      setBootProgress(1);
+
+      setTimeout(() => {
+        setBootDone(true);
+        setTimeout(() => {
+          setRevealed(true);
+        }, 300);
+      }, 240);
+
+      startLoop();
+    }
+
+    function unlockVideo() {
+      if (!clip) return;
+      if (clip.paused) {
+        const playPromise = clip.play();
+        if (playPromise !== undefined && typeof playPromise.then === 'function') {
+          playPromise
+            .then(() => {
+              clip.pause();
+            })
+            .catch(() => {});
+        } else {
+          clip.pause();
+        }
+      }
+    }
+
+    function onFirstInteraction() {
+      unlockVideo();
+      window.removeEventListener('touchstart', onFirstInteraction);
+      window.removeEventListener('pointerdown', onFirstInteraction);
+      window.removeEventListener('click', onFirstInteraction);
+    }
+    window.addEventListener('touchstart', onFirstInteraction, { passive: true, once: true });
+    window.addEventListener('pointerdown', onFirstInteraction, { passive: true, once: true });
+    window.addEventListener('click', onFirstInteraction, { passive: true, once: true });
+
+    function bindClipEvents() {
+      if (!clip) return;
+      clip.addEventListener('loadedmetadata', () => {
+        try {
+          clip.currentTime = 0.001;
+        } catch {}
+      });
+      clip.addEventListener('canplay', () => {
+        start();
+      });
+      clip.addEventListener('canplaythrough', () => {
+        start();
+      });
+      setTimeout(() => {
+        start();
+      }, 3500);
+    }
+
+    function fallbackDirect() {
+      if (!clip) return;
+      clip.src = VIDEO_URL;
+      bindClipEvents();
+    }
+
+    function preloadBlob() {
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', VIDEO_URL, true);
+        xhr.responseType = 'blob';
+
+        xhr.onprogress = (e) => {
+          if (e.lengthComputable && e.total > 0) {
+            setBootProgress(e.loaded / e.total);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300 && xhr.response) {
+            try {
+              const blobUrl = URL.createObjectURL(xhr.response);
+              if (clip) {
+                clip.src = blobUrl;
+                bindClipEvents();
+                return;
+              }
+              fallbackDirect();
+            } catch {
+              fallbackDirect();
+            }
+          } else {
+            fallbackDirect();
+          }
+        };
+
+        xhr.onerror = () => {
+          fallbackDirect();
+        };
+
+        xhr.send();
+      } catch {
+        fallbackDirect();
+      }
+    }
+
+    function calculateTargetProgress() {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (maxScroll <= 0) return 0;
+      const st = window.pageYOffset || document.documentElement.scrollTop || 0;
+      return Math.max(0, Math.min(1, st / maxScroll));
+    }
+
+    function onScroll() {
+      targetProgress = calculateTargetProgress();
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    function updatePanels(p: number) {
+      for (let i = 0; i < panels.length; i++) {
+        const cue = CUES[i];
+        const panel = panels[i];
+        if (!cue || !panel) continue;
+
+        const a = cue[0];
+        const b = cue[1];
+        const c = cue[2];
+        const d = cue[3];
+        let opacity = 0;
+        let y = 0;
+
+        if (p < a) {
+          opacity = 0;
+          y = DRIFT;
+        } else if (p > d) {
+          opacity = 0;
+          y = -DRIFT;
+        } else {
+          if (b === a) {
+            if (p <= c) {
+              opacity = 1;
+            } else {
+              opacity = d > c ? 1 - (p - c) / (d - c) : 0;
+            }
+          } else if (p < b) {
+            opacity = (p - a) / (b - a);
+          } else if (p <= c) {
+            opacity = 1;
+          } else {
+            opacity = d > c ? 1 - (p - c) / (d - c) : 0;
+          }
+
+          const u = d > a ? (p - a) / (d - a) : 0;
+          y = (0.5 - u) * (DRIFT * 2);
+        }
+
+        opacity = Math.max(0, Math.min(1, opacity));
+        panel.style.opacity = opacity.toFixed(4);
+        panel.style.transform = 'translate3d(0,' + y.toFixed(2) + 'px, 0)';
+        panel.style.pointerEvents = opacity > 0.6 ? 'auto' : 'none';
+        panel.style.visibility = opacity > 0.001 ? 'visible' : 'hidden';
+      }
+    }
+
+    function loop() {
+      rafId = requestAnimationFrame(loop);
+
+      currentProgress += (targetProgress - currentProgress) * EASE;
+      if (Math.abs(targetProgress - currentProgress) < 0.0001) {
+        currentProgress = targetProgress;
+      }
+
+      if (meter) {
+        meter.style.transform = 'scaleX(' + currentProgress.toFixed(4) + ')';
+      }
+
+      if (clip && clip.duration) {
+        const targetTime = currentProgress * clip.duration;
+        const gap = targetTime - seekAt;
+        if (Math.abs(gap) > 0.001) {
+          seekAt += gap * 0.115;
+          if (seekAt < 0) seekAt = 0;
+          if (seekAt > clip.duration) seekAt = clip.duration;
+          clip.currentTime = seekAt;
+        }
+      }
+
+      updatePanels(currentProgress);
+    }
+
+    function startLoop() {
+      if (!rafId) {
+        targetProgress = calculateTargetProgress();
+        currentProgress = targetProgress;
+        updatePanels(currentProgress);
+        loop();
+      }
+    }
+
+    // Initialize
+    targetProgress = calculateTargetProgress();
+    currentProgress = targetProgress;
+    updatePanels(currentProgress);
+    preloadBlob();
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
+
+  const handleNavScroll = (target: string) => {
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    if (maxScroll <= 0) return;
+
+    if (target === 'home' || target === 'lost') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (target === 'found' || target === 'map') {
+      window.scrollTo({ top: maxScroll * 0.5, behavior: 'smooth' });
+    } else if (target === 'matches') {
+      window.scrollTo({ top: maxScroll * 0.95, behavior: 'smooth' });
+    }
+  };
+
+  const handleNotificationClick = () => {
+    alert('Notifications: Campus recovery network is active. No unread match alerts.');
+  };
+
+  return (
+    <div className="landing-root text-[#0d0c0b] bg-[#f2f0ec] font-['Inter_Tight',sans-serif] min-h-screen relative overflow-x-hidden selection:bg-[#0a0908]/15">
+      <style jsx global>{`
+        :root {
+          --fg: #0d0c0b;
+          --fg-soft: rgba(13, 12, 11, 0.64);
+          --fg-faint: rgba(13, 12, 11, 0.42);
+          --shade: #f2f0ec;
+          --rule: rgba(13, 12, 11, 0.16);
+          --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+          --pill-bg: #0a0908;
+          --pill-fg: #ffffff;
+        }
+
+        .landing-root .reveal {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+        }
+
+        .landing-root .reveal.active {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .landing-boot {
+          position: fixed;
+          inset: 0;
+          z-index: 100;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          background: var(--shade);
+          transition: opacity 0.6s var(--ease), visibility 0.6s var(--ease);
+        }
+
+        .landing-boot.done {
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+        }
+
+        .landing-stage {
+          position: fixed;
+          inset: 0;
+          z-index: 0;
+          overflow: hidden;
+          background: var(--shade);
+        }
+
+        .landing-stage video {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 100%;
+          height: 100%;
+          transform: translate(-50%, -50%) scale(1.02);
+          object-fit: cover;
+          filter: contrast(1.02);
+          will-change: transform;
+        }
+
+        .landing-veil {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background:
+            linear-gradient(
+              to bottom,
+              rgba(242, 240, 236, 0.62) 0%,
+              rgba(242, 240, 236, 0.12) 22%,
+              rgba(242, 240, 236, 0.12) 78%,
+              rgba(242, 240, 236, 0.66) 100%
+            ),
+            radial-gradient(
+              100% 80% at 50% 48%,
+              rgba(242, 240, 236, 0) 0%,
+              rgba(242, 240, 236, 0.34) 100%
+            ),
+            rgba(242, 240, 236, 0.2);
+        }
+
+        .landing-grain {
+          position: absolute;
+          inset: -50%;
+          opacity: 0.13;
+          mix-blend-mode: multiply;
+          pointer-events: none;
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.5'/></svg>");
+        }
+
+        .landing-meter {
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 50;
+          height: 2px;
+          width: 100%;
+          transform: scaleX(0);
+          transform-origin: 0 50%;
+          background: var(--fg);
+          opacity: 0.55;
+          will-change: transform;
+        }
+
+        .landing-chrome {
+          position: fixed;
+          left: 0;
+          right: 0;
+          top: 0;
+          z-index: 40;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: max(14px, calc(env(safe-area-inset-top, 0px) + 12px)) clamp(16px, 3.4vw, 44px) 14px;
+          background: linear-gradient(
+            to bottom,
+            rgba(242, 240, 236, 0.94) 0%,
+            rgba(242, 240, 236, 0.78) 72%,
+            rgba(242, 240, 236, 0) 100%
+          );
+        }
+
+        .landing-mark {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          font-size: 15px;
+          font-weight: 500;
+          letter-spacing: -0.012em;
+          color: var(--fg);
+          min-width: 0;
+          flex-shrink: 1;
+          text-decoration: none;
+        }
+
+        .landing-nav {
+          display: flex;
+          align-items: center;
+          gap: clamp(14px, 2.2vw, 24px);
+          flex-shrink: 0;
+        }
+
+        .landing-nav a:not(.landing-pill) {
+          color: var(--fg);
+          text-decoration: none;
+          font-size: 14.5px;
+          letter-spacing: -0.008em;
+          opacity: 0.6;
+          position: relative;
+          padding-bottom: 3px;
+          min-height: 36px;
+          display: inline-flex;
+          align-items: center;
+          transition: opacity 0.3s var(--ease);
+          cursor: pointer;
+        }
+
+        .landing-nav a:not(.landing-pill)::after {
+          content: '';
+          position: absolute;
+          bottom: 2px;
+          left: 0;
+          width: 100%;
+          height: 1.5px;
+          background-color: var(--fg);
+          transform: scaleX(0);
+          transform-origin: right;
+          transition: transform 0.3s var(--ease);
+        }
+
+        .landing-nav a:not(.landing-pill):hover {
+          opacity: 1;
+        }
+
+        .landing-nav a:not(.landing-pill):hover::after {
+          transform: scaleX(1);
+          transform-origin: left;
+        }
+
+        .landing-pill {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 36px;
+          height: 40px;
+          padding: 0 21px;
+          border-radius: 999px;
+          background: var(--pill-bg);
+          color: var(--pill-fg);
+          font-size: 14.5px;
+          font-weight: 500;
+          letter-spacing: -0.008em;
+          text-decoration: none;
+          white-space: nowrap;
+          border: 1px solid rgba(10, 9, 8, 0.12);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+          cursor: pointer;
+          font-family: inherit;
+          transition: transform 0.4s var(--ease), background 0.3s var(--ease), color 0.3s var(--ease);
+        }
+
+        .landing-pill:hover,
+        .landing-pill:focus-visible {
+          transform: translateY(-2px);
+          background: #000;
+          color: #fff;
+        }
+
+        .landing-panels {
+          position: fixed;
+          inset: 0;
+          z-index: 20;
+          pointer-events: none;
+        }
+
+        .landing-panel {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: max(104px, calc(env(safe-area-inset-top, 0px) + 88px)) clamp(20px, 5vw, 60px)
+            max(96px, calc(env(safe-area-inset-bottom, 0px) + 80px));
+          opacity: 0;
+          will-change: opacity, transform;
+        }
+
+        .landing-eyebrow {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 6px 12px;
+          font-size: 12.5px;
+          letter-spacing: 0.045em;
+          color: var(--fg-soft);
+          margin-bottom: clamp(16px, 2vw, 22px);
+          max-width: min(46ch, 100%);
+          text-align: center;
+        }
+
+        .landing-h1 {
+          font-weight: 400;
+          font-size: clamp(34px, 7.1vw, 104px);
+          line-height: 0.98;
+          letter-spacing: -0.036em;
+          max-width: 15ch;
+          text-wrap: balance;
+          color: var(--fg);
+        }
+
+        .landing-sub {
+          margin-top: clamp(18px, 2.2vw, 28px);
+          font-size: clamp(15px, 1.28vw, 19px);
+          line-height: 1.5;
+          letter-spacing: -0.008em;
+          color: var(--fg-soft);
+          max-width: min(46ch, 100%);
+          text-wrap: pretty;
+        }
+
+        .landing-cta {
+          margin-top: clamp(28px, 3.4vw, 44px);
+          pointer-events: auto;
+          width: 100%;
+          display: flex;
+          justify-content: center;
+        }
+
+        .landing-cta .landing-pill {
+          height: 48px;
+          padding: 0 27px;
+          font-size: 15px;
+          max-width: min(100%, 320px);
+        }
+
+        .landing-foot {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          z-index: 40;
+          display: flex;
+          justify-content: center;
+          padding: 14px clamp(16px, 4vw, 24px)
+            max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+          font-size: 12px;
+          line-height: 1.45;
+          letter-spacing: 0.02em;
+          color: var(--fg-faint);
+          text-align: center;
+          pointer-events: none;
+          background: linear-gradient(
+            to top,
+            rgba(242, 240, 236, 0.92) 0%,
+            rgba(242, 240, 236, 0.72) 72%,
+            rgba(242, 240, 236, 0) 100%
+          );
+        }
+
+        .landing-track {
+          position: relative;
+          z-index: 1;
+          height: 560vh;
+          min-height: 3200px;
+        }
+
+        @media (max-width: 768px) {
+          .landing-nav a:not(.landing-pill) {
+            display: none;
+          }
+          .landing-chrome {
+            padding: max(12px, calc(env(safe-area-inset-top, 0px) + 8px)) clamp(16px, 4vw, 24px) 12px;
+          }
+          .landing-panel {
+            padding: max(88px, calc(env(safe-area-inset-top, 0px) + 72px)) clamp(16px, 4vw, 24px)
+              max(84px, calc(env(safe-area-inset-bottom, 0px) + 68px));
+          }
+          .landing-h1 {
+            font-size: clamp(32px, 8.2vw, 56px);
+            line-height: 1.02;
+          }
+          .landing-sub {
+            font-size: 15px;
+            margin-top: 16px;
+          }
+          .landing-cta {
+            margin-top: 24px;
+          }
+          .landing-cta .landing-pill {
+            height: 44px;
+            padding: 0 22px;
+            font-size: 14.5px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .landing-mark {
+            font-size: 14.5px;
+          }
+          .landing-pill {
+            height: 36px;
+            padding: 0 16px;
+            font-size: 13.5px;
+          }
+          .landing-panel {
+            padding: max(76px, calc(env(safe-area-inset-top, 0px) + 60px)) 16px
+              max(74px, calc(env(safe-area-inset-bottom, 0px) + 56px));
+          }
+          .landing-h1 {
+            font-size: clamp(28px, 8vw, 42px);
+          }
+          .landing-sub {
+            font-size: 14px;
+            line-height: 1.45;
+          }
+          .landing-foot {
+            font-size: 11px;
+            padding: 10px 14px max(12px, calc(env(safe-area-inset-bottom, 0px) + 8px));
+          }
+        }
+      `}</style>
+
+      {/* Preloader */}
+      <div className={`landing-boot ${bootDone ? 'done' : ''}`} id="boot">
+        <div className="w-[min(200px,50vw)] h-[2px] bg-[var(--rule)] rounded-full overflow-hidden relative">
+          <i
+            ref={bootBarRef}
+            className="absolute inset-0 block bg-[var(--fg)] scale-x-0 origin-left transition-transform duration-100 ease-linear"
+          />
+        </div>
+        <p className="text-[11px] tracking-[0.08em] text-[var(--fg-faint)] font-medium uppercase">
+          {bootPctText}
+        </p>
+      </div>
+
+      {/* Fixed Background Video Layer */}
+      <div className="landing-stage">
+        <video
+          ref={videoRef}
+          id="clip"
+          muted
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+        />
+        <div className="landing-veil" />
+        <div className="landing-grain" />
+      </div>
+
+      {/* Scroll Meter */}
+      <i ref={meterRef} className="landing-meter" id="meter" />
+
+      {/* Fixed Navbar (Chrome) */}
+      <header className={`landing-chrome reveal ${revealed ? 'active' : ''}`}>
+        <Link href="/" className="landing-mark">
+          <span className="opacity-85 text-base" aria-hidden="true">&#10037;</span>
+          <span>Find Back with AI</span>
+        </Link>
+        <nav className="landing-nav">
+          <a onClick={() => handleNavScroll('home')}>Home page</a>
+          <Link href="/dashboard">Dashboard</Link>
+          <a onClick={() => handleNavScroll('lost')}>Lost log</a>
+          <a onClick={() => handleNavScroll('found')}>Found log</a>
+          <a onClick={() => handleNavScroll('matches')}>Matches</a>
+          <Link href="/maps">Map View</Link>
+          <div className="flex items-center gap-3 ml-2">
+            <button
+              id="notifBtn"
+              type="button"
+              onClick={handleNotificationClick}
+              className="bg-transparent border border-transparent rounded-lg min-w-[36px] min-h-[36px] inline-flex items-center justify-center text-base cursor-pointer text-[var(--fg)] hover:bg-[rgba(13,12,11,0.06)] transition-all"
+              aria-label="Notifications"
+            >
+              &#128276;
+            </button>
+            <button
+              id="profileBtn"
+              type="button"
+              onClick={() => setIsAuthOpen(true)}
+              className="landing-pill cursor-pointer"
+            >
+              &#128100;&nbsp;Login / Get Started
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      {/* Three Cross-Fading Text Panels */}
+      <main className="landing-panels">
+        {/* Panel 1 */}
+        <section ref={panel0Ref} className="landing-panel" data-panel id="lost">
+          <p className="landing-eyebrow">
+            Smart Campus Recovery <span>&middot;</span> AI Powered
+          </p>
+          <h1 className="landing-h1">
+            Lost it?<br />We&apos;ll match it.
+          </h1>
+          <p className="landing-sub">
+            Upload a photo or description of your misplaced item. Our AI instantly scans the campus found-log.
+          </p>
+          <div className="landing-cta">
+            <button
+              type="button"
+              onClick={() => {
+                setReportType('lost');
+                setIsReportOpen(true);
+              }}
+              className="landing-pill cursor-pointer"
+            >
+              Log a Lost Item
+            </button>
+          </div>
+        </section>
+
+        {/* Panel 2 */}
+        <section ref={panel1Ref} className="landing-panel" data-panel id="found">
+          <p className="landing-eyebrow">The Found Log</p>
+          <h1 className="landing-h1">
+            Found something?<br />Secure it.
+          </h1>
+          <p className="landing-sub">
+            Drop a pin on the map and log the item. Help return keys, wallets, and devices to their owners.
+          </p>
+          <div className="landing-cta">
+            <button
+              type="button"
+              onClick={() => {
+                setReportType('found');
+                setIsReportOpen(true);
+              }}
+              className="landing-pill cursor-pointer"
+            >
+              Log a Found Item
+            </button>
+          </div>
+        </section>
+
+        {/* Panel 3 */}
+        <section ref={panel2Ref} className="landing-panel" data-panel id="matches">
+          <p className="landing-eyebrow">Instant Connections</p>
+          <h1 className="landing-h1">
+            Matched in<br />milliseconds.
+          </h1>
+          <p className="landing-sub">
+            When the AI embeddings align, both parties are securely notified to coordinate the return via Map View.
+          </p>
+          <div className="landing-cta">
+            <Link href="/matches" className="landing-pill">
+              View My Matches
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      {/* Fixed Footer */}
+      <footer className={`landing-foot reveal ${revealed ? 'active' : ''}`}>
+        Secure Campus Item Recovery &middot; AI Matching
+      </footer>
+
+      {/* Scroll Height Track */}
+      <div className="landing-track" />
+
+      {/* Supabase Email + Password Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        redirectToDashboard={true}
+      />
+
+      {/* Item Report Modal */}
+      <ItemReportModal
+        isOpen={isReportOpen}
+        initialType={reportType}
+        onClose={() => setIsReportOpen(false)}
+        onItemCreated={() => {
+          router.push('/dashboard');
+        }}
+      />
+    </div>
+  );
+}
