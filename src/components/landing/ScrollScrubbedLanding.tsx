@@ -535,53 +535,69 @@ export default function ScrollScrubbedLanding() {
           align-items: center;
           justify-content: center;
           text-align: center;
-          padding: max(104px, calc(env(safe-area-inset-top, 0px) + 88px)) clamp(20px, 5vw, 60px)
-            max(96px, calc(env(safe-area-inset-bottom, 0px) + 80px));
+          padding: clamp(20px, 4vh, 48px) clamp(20px, 5vw, 60px);
           opacity: 0;
           will-change: opacity, transform;
         }
 
-        .landing-eyebrow {
+        .landing-content-block {
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
-          flex-wrap: wrap;
-          gap: 6px 12px;
-          font-size: 12.5px;
-          letter-spacing: 0.045em;
-          color: var(--fg-soft);
-          margin-bottom: clamp(16px, 2vw, 22px);
-          max-width: min(46ch, 100%);
+          text-align: center;
+          width: 100%;
+          max-width: 820px;
+          margin: 0 auto;
+        }
+
+        .landing-eyebrow {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: clamp(12.5px, 1.1vw, 14px);
+          font-weight: 500;
+          letter-spacing: 0.04em;
+          color: #71717a;
+          margin-bottom: clamp(14px, 2vw, 24px);
           text-align: center;
         }
 
         .landing-h1 {
-          font-weight: 400;
-          font-size: clamp(34px, 7.1vw, 104px);
-          line-height: 0.98;
-          letter-spacing: -0.036em;
-          max-width: 15ch;
+          font-weight: 450;
+          font-size: clamp(38px, 6.4vw, 86px);
+          line-height: 1.04;
+          letter-spacing: -0.034em;
+          max-width: 18ch;
           text-wrap: balance;
-          color: var(--fg);
+          color: #11100f;
+          text-align: center;
+          margin: 0 auto;
         }
 
         .landing-sub {
-          margin-top: clamp(18px, 2.2vw, 28px);
-          font-size: clamp(15px, 1.28vw, 19px);
-          line-height: 1.5;
-          letter-spacing: -0.008em;
-          color: var(--fg-soft);
-          max-width: min(46ch, 100%);
+          margin-top: clamp(18px, 2.3vw, 28px);
+          font-size: clamp(15px, 1.25vw, 18.5px);
+          line-height: 1.55;
+          letter-spacing: -0.01em;
+          color: #52525b;
+          max-width: min(52ch, 100%);
           text-wrap: pretty;
+          text-align: center;
+          margin-left: auto;
+          margin-right: auto;
         }
 
         .landing-cta {
-          margin-top: clamp(28px, 3.4vw, 44px);
+          margin-top: clamp(26px, 3.2vw, 38px);
           pointer-events: auto;
           width: 100%;
           display: flex;
+          flex-direction: row;
+          align-items: center;
           justify-content: center;
-          gap: 12px;
+          flex-wrap: wrap;
+          gap: 14px;
         }
 
         .landing-foot {
@@ -705,65 +721,73 @@ export default function ScrollScrubbedLanding() {
       <main className="landing-panels">
         {/* Panel 1 (1st text change) */}
         <section ref={panel0Ref} className="landing-panel" data-panel id="lost">
-          <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
-          <h1 className="landing-h1">
-            Upload a photo,<br />We sync the rest.
-          </h1>
-          <p className="landing-sub">
-            Don&apos;t rely on handwritten registers or scattered WhatsApp groups. Our AI compares your missing item against everything found on campus in seconds.
-          </p>
-          <div className="landing-cta">
-            <Link href="/lost" className="landing-btn-primary">
-              Report a Lost item
-            </Link>
+          <div className="landing-content-block">
+            <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
+            <h1 className="landing-h1">
+              Upload a photo,<br />We sync the rest.
+            </h1>
+            <p className="landing-sub">
+              Don&apos;t rely on handwritten registers or scattered WhatsApp groups. Our AI compares your missing item against everything found on campus in seconds.
+            </p>
+            <div className="landing-cta">
+              <Link href="/lost" className="landing-btn-primary">
+                Report a Lost item
+              </Link>
+            </div>
           </div>
         </section>
 
         {/* Panel 2 (2nd text change) */}
         <section ref={panel1Ref} className="landing-panel" data-panel id="found">
-          <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
-          <h1 className="landing-h1">
-            Found by chance,<br />Returning by choice.
-          </h1>
-          <p className="landing-sub">
-            Found an item by chance that belongs to someone else and looking to return it. If you lost something recently, please reach out with a description so it can safely make its way back home.
-          </p>
-          <div className="landing-cta">
-            <Link href="/found" className="landing-btn-primary">
-              Report a Found item
-            </Link>
+          <div className="landing-content-block">
+            <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
+            <h1 className="landing-h1">
+              Found by chance,<br />Returning by choice.
+            </h1>
+            <p className="landing-sub">
+              Found an item by chance that belongs to someone else and looking to return it. If you lost something recently, please reach out with a description so it can safely make its way back home.
+            </p>
+            <div className="landing-cta">
+              <Link href="/found" className="landing-btn-primary">
+                Report a Found item
+              </Link>
+            </div>
           </div>
         </section>
 
         {/* Panel 3 (3rd text change) */}
         <section ref={panel2Ref} className="landing-panel" data-panel id="matches">
-          <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
-          <h1 className="landing-h1">
-            The ultimate matchmaker<br />for missing things.
-          </h1>
-          <p className="landing-sub">
-            A smart platform designed to instantly bridge the gap between missing items and honest finders. Simply post what you lost or discovered, and our system will seamlessly match them to bring your belongings home.
-          </p>
-          <div className="landing-cta">
-            <Link href="/matches" className="landing-btn-primary">
-              Matched Items
-            </Link>
+          <div className="landing-content-block">
+            <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
+            <h1 className="landing-h1">
+              The ultimate matchmaker<br />for missing things.
+            </h1>
+            <p className="landing-sub">
+              A smart platform designed to instantly bridge the gap between missing items and honest finders. Simply post what you lost or discovered, and our system will seamlessly match them to bring your belongings home.
+            </p>
+            <div className="landing-cta">
+              <Link href="/matches" className="landing-btn-primary">
+                Matched Items
+              </Link>
+            </div>
           </div>
         </section>
 
         {/* Panel 4 (4th text change) */}
         <section ref={panel3Ref} className="landing-panel" data-panel id="dashboard">
-          <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
-          <h1 className="landing-h1">
-            Hold tight,<br />loading your main dashboard.
-          </h1>
-          <p className="landing-sub">
-            Taking you straight to your personal control center to manage your items. You will be automatically redirected to your dashboard to view your latest matches and active posts in just a moment.
-          </p>
-          <div className="landing-cta">
-            <Link href="/dashboard" className="landing-btn-primary">
-              Here you go
-            </Link>
+          <div className="landing-content-block">
+            <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
+            <h1 className="landing-h1">
+              Hold tight,<br />loading your main dashboard.
+            </h1>
+            <p className="landing-sub">
+              Taking you straight to your personal control center to manage your items. You will be automatically redirected to your dashboard to view your latest matches and active posts in just a moment.
+            </p>
+            <div className="landing-cta">
+              <Link href="/dashboard" className="landing-btn-primary">
+                Here you go
+              </Link>
+            </div>
           </div>
         </section>
       </main>
