@@ -479,19 +479,19 @@ export default function ScrollScrubbedLanding() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-height: 44px;
           height: 44px;
-          padding: 0 24px;
-          border-radius: 8px;
-          background: #000000 !important;
+          min-height: 44px;
+          padding: 0 28px;
+          border-radius: 9999px !important;
+          background: #0a0908 !important;
           color: #ffffff !important;
-          font-size: 14.5px;
-          font-weight: 600;
+          font-size: 14px;
+          font-weight: 500;
           letter-spacing: -0.01em;
           text-decoration: none;
           white-space: nowrap;
-          border: 1px solid #000000;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+          border: 1px solid #0a0908;
+          box-shadow: 0 2px 8px rgba(10, 9, 8, 0.16);
           cursor: pointer;
           font-family: inherit;
           transition: transform 0.2s var(--ease), background 0.2s var(--ease), box-shadow 0.2s var(--ease);
@@ -502,14 +502,14 @@ export default function ScrollScrubbedLanding() {
         .landing-btn-secondary:hover,
         .landing-btn-secondary:focus-visible {
           transform: translateY(-2px);
-          background: #1a1a1a !important;
+          background: #1f1e1c !important;
           color: #ffffff !important;
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 4px 14px rgba(10, 9, 8, 0.26);
         }
 
         .landing-btn-primary:focus-visible,
         .landing-btn-secondary:focus-visible {
-          outline: 2px solid #000000;
+          outline: 2px solid #0a0908;
           outline-offset: 2px;
         }
 
@@ -534,25 +534,38 @@ export default function ScrollScrubbedLanding() {
           will-change: opacity, transform;
         }
 
+        .landing-eyebrow {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 13.5px;
+          letter-spacing: -0.01em;
+          color: rgba(13, 12, 11, 0.52);
+          margin-bottom: clamp(14px, 1.8vw, 20px);
+          text-align: center;
+          font-weight: 400;
+        }
+
         .landing-h1 {
-          font-weight: 700;
-          font-style: italic;
-          font-size: clamp(32px, 5.2vw, 68px);
-          line-height: 1.1;
-          letter-spacing: -0.025em;
-          max-width: 26ch;
+          font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-weight: 500;
+          font-style: normal;
+          font-size: clamp(38px, 6.8vw, 88px);
+          line-height: 1.01;
+          letter-spacing: -0.038em;
+          max-width: 16ch;
           text-wrap: balance;
-          color: var(--fg);
+          color: #0d0c0b;
           text-align: center;
         }
 
         .landing-sub {
-          margin-top: clamp(14px, 1.8vw, 24px);
-          font-size: clamp(15px, 1.25vw, 18.5px);
-          line-height: 1.6;
+          margin-top: clamp(16px, 2vw, 24px);
+          font-size: clamp(14.5px, 1.22vw, 17px);
+          line-height: 1.5;
           letter-spacing: -0.008em;
-          color: var(--fg-soft);
-          max-width: min(56ch, 100%);
+          color: rgba(13, 12, 11, 0.68);
+          max-width: min(44ch, 100%);
           text-wrap: pretty;
           text-align: center;
         }
@@ -689,11 +702,12 @@ export default function ScrollScrubbedLanding() {
       <main className="landing-panels">
         {/* Panel 1: Lost Log (1st text change) */}
         <section ref={panel0Ref} className="landing-panel" data-panel id="lost">
+          <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
           <h1 className="landing-h1">
-            Upload a photo, We sync the rest
+            Upload a photo.<br />We sync the rest.
           </h1>
           <p className="landing-sub">
-            Don&apos;t rely on handwritten registers or scattered WhatsApp groups. Our Al compares your missing item against everything found on campus in seconds
+            Don&apos;t rely on handwritten registers or scattered WhatsApp groups. Our Al compares your missing item against everything found on campus in seconds.
           </p>
           <div className="landing-cta">
             <button
@@ -714,8 +728,9 @@ export default function ScrollScrubbedLanding() {
 
         {/* Panel 2: Found Log (2nd text change) */}
         <section ref={panel1Ref} className="landing-panel" data-panel id="found">
+          <p className="landing-eyebrow">Discovered Items &middot; Safe Return</p>
           <h1 className="landing-h1">
-            Found by chance, Returning by choice.
+            Found by chance,<br />Returning by choice.
           </h1>
           <p className="landing-sub">
             Found an item by chance that belongs to someone else and looking to return it. If you lost something recently, please reach out with a description so it can safely make its way back home.
@@ -739,8 +754,9 @@ export default function ScrollScrubbedLanding() {
 
         {/* Panel 3: Matches (3rd text change) */}
         <section ref={panel2Ref} className="landing-panel" data-panel id="matches">
+          <p className="landing-eyebrow">Multimodal AI &middot; Instant Matching</p>
           <h1 className="landing-h1">
-            The ultimate matchmaker for missing things.
+            The ultimate matchmaker<br />for missing things.
           </h1>
           <p className="landing-sub">
             A smart platform designed to instantly bridge the gap between missing items and honest finders. Simply post what you lost or discovered, and our system will seamlessly match them to bring your belongings home.
@@ -754,8 +770,9 @@ export default function ScrollScrubbedLanding() {
 
         {/* Panel 4: Dashboard (At last after scrolling whole home page) */}
         <section ref={panel3Ref} className="landing-panel" data-panel id="dashboard">
+          <p className="landing-eyebrow">Control Center &middot; Live Status</p>
           <h1 className="landing-h1">
-            Hold tight, loading your main dashboard.
+            Hold tight,<br />loading your main dashboard.
           </h1>
           <p className="landing-sub">
             Taking you straight to your personal control center to manage your items. You will be automatically redirected to your dashboard to view your latest matches and active posts in just a moment.

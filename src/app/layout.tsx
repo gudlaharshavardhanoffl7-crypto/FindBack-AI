@@ -18,7 +18,7 @@ const geistMono = localFont({
 
 const interTight = Inter_Tight({
   subsets: ['latin'],
-  weight: ['400', '500'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-inter-tight',
   display: 'swap',
 });
