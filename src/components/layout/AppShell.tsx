@@ -12,7 +12,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isLandingPage = pathname === '/';
 
   if (isLandingPage) {
-    return <main className="min-h-screen relative">{children}</main>;
+    return (
+      <div className="min-h-screen relative flex flex-col">
+        <Navbar />
+        <main className="flex-1 relative">{children}</main>
+      </div>
+    );
   }
 
   return (

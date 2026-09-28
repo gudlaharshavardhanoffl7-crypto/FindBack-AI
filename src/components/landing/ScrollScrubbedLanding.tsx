@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import AuthModal from '@/components/auth/AuthModal';
 import ItemReportModal from '@/components/items/ItemReportModal';
 import { ItemType } from '@/types';
 
@@ -30,7 +29,6 @@ export default function ScrollScrubbedLanding() {
   const [revealed, setRevealed] = useState(false);
 
   // Modals state
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportType, setReportType] = useState<ItemType>('lost');
 
@@ -272,23 +270,6 @@ export default function ScrollScrubbedLanding() {
       window.removeEventListener('resize', onScroll);
     };
   }, []);
-
-  const handleNavScroll = (target: string) => {
-    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-    if (maxScroll <= 0) return;
-
-    if (target === 'home' || target === 'lost') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (target === 'found' || target === 'map') {
-      window.scrollTo({ top: maxScroll * 0.5, behavior: 'smooth' });
-    } else if (target === 'matches') {
-      window.scrollTo({ top: maxScroll * 0.95, behavior: 'smooth' });
-    }
-  };
-
-  const handleNotificationClick = () => {
-    alert('Notifications: Campus recovery network is active. No unread match alerts.');
-  };
 
   return (
     <div className="landing-root text-[#0d0c0b] bg-[#f2f0ec] font-['Inter_Tight',sans-serif] min-h-screen relative overflow-x-hidden selection:bg-[#0a0908]/15">
@@ -689,41 +670,6 @@ export default function ScrollScrubbedLanding() {
       {/* Scroll Meter */}
       <i ref={meterRef} className="landing-meter" id="meter" />
 
-      {/* Fixed Navbar (Chrome) */}
-      <header className={`landing-chrome reveal ${revealed ? 'active' : ''}`}>
-        <Link href="/" className="landing-mark">
-          <span className="opacity-85 text-base" aria-hidden="true">&#10037;</span>
-          <span>Find Back with AI</span>
-        </Link>
-        <nav className="landing-nav">
-          <a onClick={() => handleNavScroll('home')}>Home page</a>
-          <Link href="/dashboard">Dashboard</Link>
-          <a onClick={() => handleNavScroll('lost')}>Lost log</a>
-          <a onClick={() => handleNavScroll('found')}>Found log</a>
-          <a onClick={() => handleNavScroll('matches')}>Matches</a>
-          <Link href="/maps">Map View</Link>
-          <div className="flex items-center gap-3 ml-2">
-            <button
-              id="notifBtn"
-              type="button"
-              onClick={handleNotificationClick}
-              className="bg-transparent border border-transparent rounded-lg min-w-[36px] min-h-[36px] inline-flex items-center justify-center text-base cursor-pointer text-[var(--fg)] hover:bg-[rgba(13,12,11,0.06)] transition-all"
-              aria-label="Notifications"
-            >
-              &#128276;
-            </button>
-            <button
-              id="profileBtn"
-              type="button"
-              onClick={() => setIsAuthOpen(true)}
-              className="landing-pill cursor-pointer"
-            >
-              &#128100;&nbsp;Login / Get Started
-            </button>
-          </div>
-        </nav>
-      </header>
-
       {/* Three Cross-Fading Text Panels */}
       <main className="landing-panels">
         {/* Panel 1 */}
@@ -799,12 +745,6 @@ export default function ScrollScrubbedLanding() {
       {/* Scroll Height Track */}
       <div className="landing-track" />
 
-      {/* Supabase Email + Password Authentication Modal */}
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        redirectToDashboard={true}
-      />
 
       {/* Item Report Modal */}
       <ItemReportModal
