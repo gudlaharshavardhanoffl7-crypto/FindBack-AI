@@ -82,20 +82,6 @@ html, body {
   background: rgba(56, 189, 248, 0.4);
 }
 
-/* Custom Cursor default suppression for desktop pointer devices */
-@media (pointer: fine) {
-  body.has-custom-cursor {
-    cursor: none;
-  }
-  body.has-custom-cursor a,
-  body.has-custom-cursor button,
-  body.has-custom-cursor input,
-  body.has-custom-cursor select,
-  body.has-custom-cursor textarea,
-  body.has-custom-cursor [role="button"] {
-    cursor: none;
-  }
-}
 
 /* Grid overlay background */
 .bg-grid-pattern {

@@ -27,20 +27,20 @@ export default function Navbar() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  // Initial notifications about AI vector matches
+  // Operational status notifications
   const [notifications, setNotifications] = useState([
     {
       id: 'notif-1',
-      title: 'High Confidence Vector Match',
-      message: 'Found item "Brass Keyring" matches your reported "Brass Ring #402" with 94% similarity.',
-      time: '12m ago',
+      title: 'Multimodal Vector Index Active',
+      message: 'Google Gemini 1.5 embedding pipeline is connected and generating 768-D vectors.',
+      time: 'Operational',
       read: false,
     },
     {
       id: 'notif-2',
-      title: 'Coordinate Proximity Trigger',
-      message: 'A discovered smartwatch was indexed within 150m of Buena Vista Park.',
-      time: '1h ago',
+      title: 'Database Synchronized',
+      message: 'Supabase PostgreSQL and pgvector similarity index are running with Row Level Security.',
+      time: 'Active',
       read: false,
     },
   ]);

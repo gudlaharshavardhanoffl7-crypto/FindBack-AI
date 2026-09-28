@@ -114,7 +114,7 @@ export default function ScrollScrubbedLanding() {
       });
       setTimeout(() => {
         start();
-      }, 3500);
+      }, 1200);
     }
 
     function fallbackDirect() {
@@ -454,33 +454,68 @@ export default function ScrollScrubbedLanding() {
           transform-origin: left;
         }
 
-        .landing-pill {
+        .landing-btn-primary {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-height: 36px;
-          height: 40px;
-          padding: 0 21px;
-          border-radius: 999px;
-          background: var(--pill-bg);
-          color: var(--pill-fg);
-          font-size: 14.5px;
-          font-weight: 500;
-          letter-spacing: -0.008em;
+          min-height: 42px;
+          height: 44px;
+          padding: 0 24px;
+          border-radius: 8px;
+          background: #0d0c0b;
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 600;
+          letter-spacing: -0.01em;
           text-decoration: none;
           white-space: nowrap;
-          border: 1px solid rgba(10, 9, 8, 0.12);
-          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+          border: 1px solid rgba(13, 12, 11, 0.2);
+          box-shadow: 0 2px 6px rgba(13, 12, 11, 0.12);
           cursor: pointer;
           font-family: inherit;
-          transition: transform 0.4s var(--ease), background 0.3s var(--ease), color 0.3s var(--ease);
+          transition: transform 0.2s var(--ease), background 0.2s var(--ease), box-shadow 0.2s var(--ease);
         }
 
-        .landing-pill:hover,
-        .landing-pill:focus-visible {
-          transform: translateY(-2px);
-          background: #000;
-          color: #fff;
+        .landing-btn-primary:hover,
+        .landing-btn-primary:focus-visible {
+          transform: translateY(-1px);
+          background: #1f1e1c;
+          box-shadow: 0 4px 12px rgba(13, 12, 11, 0.18);
+        }
+
+        .landing-btn-primary:focus-visible {
+          outline: 2px solid #0d0c0b;
+          outline-offset: 2px;
+        }
+
+        .landing-btn-secondary {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 42px;
+          height: 44px;
+          padding: 0 20px;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.9);
+          color: #0d0c0b;
+          font-size: 14px;
+          font-weight: 500;
+          letter-spacing: -0.01em;
+          text-decoration: none;
+          white-space: nowrap;
+          border: 1px solid var(--rule);
+          box-shadow: 0 1px 3px rgba(13, 12, 11, 0.05);
+          cursor: pointer;
+          font-family: inherit;
+          backdrop-filter: blur(8px);
+          transition: background 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.2s var(--ease);
+        }
+
+        .landing-btn-secondary:hover,
+        .landing-btn-secondary:focus-visible {
+          background: #ffffff;
+          border-color: rgba(13, 12, 11, 0.3);
+          transform: translateY(-1px);
         }
 
         .landing-panels {
@@ -544,13 +579,7 @@ export default function ScrollScrubbedLanding() {
           width: 100%;
           display: flex;
           justify-content: center;
-        }
-
-        .landing-cta .landing-pill {
-          height: 48px;
-          padding: 0 27px;
-          font-size: 15px;
-          max-width: min(100%, 320px);
+          gap: 12px;
         }
 
         .landing-foot {
@@ -674,14 +703,12 @@ export default function ScrollScrubbedLanding() {
       <main className="landing-panels">
         {/* Panel 1 */}
         <section ref={panel0Ref} className="landing-panel" data-panel id="lost">
-          <p className="landing-eyebrow">
-            Smart Campus Recovery <span>&middot;</span> AI Powered
-          </p>
+          <p className="landing-eyebrow">Campus Property Recovery Network</p>
           <h1 className="landing-h1">
-            Lost it?<br />We&apos;ll match it.
+            Lost an item?<br />Search campus records.
           </h1>
           <p className="landing-sub">
-            Upload a photo or description of your misplaced item. Our AI instantly scans the campus found-log.
+            Submit a photo and details of your misplaced property. The system extracts visual features to search against registered found items.
           </p>
           <div className="landing-cta">
             <button
@@ -690,21 +717,24 @@ export default function ScrollScrubbedLanding() {
                 setReportType('lost');
                 setIsReportOpen(true);
               }}
-              className="landing-pill cursor-pointer"
+              className="landing-btn-primary"
             >
-              Log a Lost Item
+              Report Lost Item
             </button>
+            <Link href="/dashboard" className="landing-btn-secondary">
+              Browse Directory
+            </Link>
           </div>
         </section>
 
         {/* Panel 2 */}
         <section ref={panel1Ref} className="landing-panel" data-panel id="found">
-          <p className="landing-eyebrow">The Found Log</p>
+          <p className="landing-eyebrow">Discovered Property Registry</p>
           <h1 className="landing-h1">
-            Found something?<br />Secure it.
+            Found an item?<br />Log it securely.
           </h1>
           <p className="landing-sub">
-            Drop a pin on the map and log the item. Help return keys, wallets, and devices to their owners.
+            Record the discovery location and item details. Connect verified owners with finders without exposing private personal information.
           </p>
           <div className="landing-cta">
             <button
@@ -713,25 +743,31 @@ export default function ScrollScrubbedLanding() {
                 setReportType('found');
                 setIsReportOpen(true);
               }}
-              className="landing-pill cursor-pointer"
+              className="landing-btn-primary"
             >
-              Log a Found Item
+              Log Found Item
             </button>
+            <Link href="/found" className="landing-btn-secondary">
+              View Found Registry
+            </Link>
           </div>
         </section>
 
         {/* Panel 3 */}
         <section ref={panel2Ref} className="landing-panel" data-panel id="matches">
-          <p className="landing-eyebrow">Instant Connections</p>
+          <p className="landing-eyebrow">Multimodal Vector Search</p>
           <h1 className="landing-h1">
-            Matched in<br />milliseconds.
+            Cosine similarity<br />across vision and text.
           </h1>
           <p className="landing-sub">
-            When the AI embeddings align, both parties are securely notified to coordinate the return via Map View.
+            Gemini vision embeddings generate 768-dimensional float vectors to compute similarity matches between missing items and campus inventory.
           </p>
           <div className="landing-cta">
-            <Link href="/matches" className="landing-pill">
-              View My Matches
+            <Link href="/dashboard" className="landing-btn-primary">
+              Open Dashboard
+            </Link>
+            <Link href="/matches" className="landing-btn-secondary">
+              View Matches
             </Link>
           </div>
         </section>

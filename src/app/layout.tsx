@@ -3,7 +3,6 @@ import localFont from 'next/font/local';
 import { Inter_Tight } from 'next/font/google';
 import './globals.css';
 import AppShell from '@/components/layout/AppShell';
-import CustomCursor from '@/components/ui/CustomCursor';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -47,11 +46,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://d2ol7oe51mr4n9.cloudfront.net" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${interTight.variable} antialiased bg-[#06090e] text-slate-100 min-h-screen selection:bg-sky-500/30 selection:text-sky-200 relative`}
+        className={`${geistSans.variable} ${geistMono.variable} ${interTight.variable} antialiased bg-[#070b12] text-slate-100 min-h-screen selection:bg-sky-500/30 selection:text-sky-200 relative`}
       >
-        {/* Custom Tracking Cursor */}
-        <CustomCursor />
-
         {/* Dynamic App Shell */}
         <AppShell>{children}</AppShell>
       </body>
