@@ -11,6 +11,8 @@ import {
   User,
   LogOut,
   Layers,
+  Menu,
+  X,
 } from 'lucide-react';
 import AuthModal from '@/components/auth/AuthModal';
 
@@ -26,6 +28,7 @@ export default function Navbar() {
   const [currentUser, setCurrentUser] = useState<UserState | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Operational status notifications
   const [notifications, setNotifications] = useState([
@@ -46,12 +49,10 @@ export default function Navbar() {
   ]);
 
   const navLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'Dashboard', href: '/dashboard' },
     { label: 'Lost Log', href: '/lost' },
     { label: 'Found Log', href: '/found' },
     { label: 'Matches', href: '/matches' },
-    { label: 'Maps', href: '/maps' },
+    { label: 'Dashboard', href: '/dashboard' },
   ];
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -253,8 +254,64 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+
+            {/* Mobile Menu Toggle Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(!mobileMenuOpen);
+                setNotificationsOpen(false);
+                setProfileDropdownOpen(false);
+              }}
+              className="md:hidden w-9 h-9 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer"
+              aria-label="Toggle navigation menu"
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-white/10 bg-[#070b12]/95 backdrop-blur-xl px-4 py-3 space-y-3">
+            <div className="space-y-1">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center justify-between px-3.5 py-2.5 text-xs font-medium rounded-lg transition-all ${
+                      isActive
+                        ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
+                        : 'text-slate-200 hover:text-white hover:bg-white/5 border border-transparent'
+                    }`}
+                  >
+                    <span>{link.label}</span>
+                    {isActive && (
+                      <span className="text-[10px] text-sky-400 font-mono tracking-wide px-1.5 py-0.5 rounded bg-sky-500/20">
+                        Current
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
+              <Link
+                href="/found"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+              >
+                <FileCheck2 className="w-3.5 h-3.5 text-sky-400" />
+                <span>Report Item</span>
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Authentication Modal (Email + Password) */}

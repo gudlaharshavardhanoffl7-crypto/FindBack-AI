@@ -3,7 +3,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Layers, Sparkles } from 'lucide-react';
 import ItemReportModal from '@/components/items/ItemReportModal';
+import Footer from '@/components/layout/Footer';
 import { ItemType } from '@/types';
 
 const VIDEO_URL =
@@ -23,6 +25,8 @@ export default function ScrollScrubbedLanding() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const bootBarRef = useRef<HTMLElement | null>(null);
   const meterRef = useRef<HTMLElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const footRef = useRef<HTMLElement | null>(null);
 
   const [bootPctText, setBootPctText] = useState('LOADING 0%');
   const [bootDone, setBootDone] = useState(false);
@@ -164,6 +168,13 @@ export default function ScrollScrubbedLanding() {
     }
 
     function calculateTargetProgress() {
+      if (trackRef.current) {
+        const track = trackRef.current;
+        const maxTrackScroll = track.offsetHeight - window.innerHeight;
+        if (maxTrackScroll <= 0) return 0;
+        const st = window.pageYOffset || document.documentElement.scrollTop || 0;
+        return Math.max(0, Math.min(1, st / maxTrackScroll));
+      }
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       if (maxScroll <= 0) return 0;
       const st = window.pageYOffset || document.documentElement.scrollTop || 0;
@@ -233,6 +244,12 @@ export default function ScrollScrubbedLanding() {
 
       if (meter) {
         meter.style.transform = 'scaleX(' + currentProgress.toFixed(4) + ')';
+      }
+
+      if (footRef.current) {
+        const atEnd = currentProgress >= 0.96;
+        footRef.current.style.opacity = atEnd ? '0' : '1';
+        footRef.current.style.transition = 'opacity 0.3s ease';
       }
 
       if (clip && clip.duration) {
@@ -701,85 +718,122 @@ export default function ScrollScrubbedLanding() {
 
       {/* Three Cross-Fading Text Panels */}
       <main className="landing-panels">
-        {/* Panel 1 */}
+        {/* Panel 1: Lost Log */}
         <section ref={panel0Ref} className="landing-panel" data-panel id="lost">
-          <p className="landing-eyebrow">Campus Property Recovery Network</p>
+          <p className="landing-eyebrow">Missing Property Index</p>
           <h1 className="landing-h1">
-            Lost an item?<br />Search campus records.
+            Lost Log
           </h1>
           <p className="landing-sub">
-            Submit a photo and details of your misplaced property. The system extracts visual features to search against registered found items.
+            Search and track registered missing items across campus. Submit photos and details to trigger multimodal vector matching against cataloged discoveries.
           </p>
           <div className="landing-cta">
+            <Link href="/lost" className="landing-btn-primary">
+              Open Lost Log →
+            </Link>
             <button
               type="button"
               onClick={() => {
                 setReportType('lost');
                 setIsReportOpen(true);
               }}
-              className="landing-btn-primary"
+              className="landing-btn-secondary"
             >
               Report Lost Item
             </button>
-            <Link href="/dashboard" className="landing-btn-secondary">
-              Browse Directory
-            </Link>
           </div>
         </section>
 
-        {/* Panel 2 */}
+        {/* Panel 2: Found Log */}
         <section ref={panel1Ref} className="landing-panel" data-panel id="found">
           <p className="landing-eyebrow">Discovered Property Registry</p>
           <h1 className="landing-h1">
-            Found an item?<br />Log it securely.
+            Found Log
           </h1>
           <p className="landing-sub">
-            Record the discovery location and item details. Connect verified owners with finders without exposing private personal information.
+            Browse registered discoveries and custody records. Log newly found physical property to safely reconnect verified owners with finders.
           </p>
           <div className="landing-cta">
+            <Link href="/found" className="landing-btn-primary">
+              Open Found Log →
+            </Link>
             <button
               type="button"
               onClick={() => {
                 setReportType('found');
                 setIsReportOpen(true);
               }}
-              className="landing-btn-primary"
+              className="landing-btn-secondary"
             >
               Log Found Item
             </button>
-            <Link href="/found" className="landing-btn-secondary">
-              View Found Registry
-            </Link>
           </div>
         </section>
 
-        {/* Panel 3 */}
+        {/* Panel 3: Matches */}
         <section ref={panel2Ref} className="landing-panel" data-panel id="matches">
           <p className="landing-eyebrow">Multimodal Vector Search</p>
           <h1 className="landing-h1">
-            Cosine similarity<br />across vision and text.
+            Matches
           </h1>
           <p className="landing-sub">
-            Gemini vision embeddings generate 768-dimensional float vectors to compute similarity matches between missing items and campus inventory.
+            Cosine similarity computation across Gemini vision embeddings and text descriptions. Automated correlation ranking connects lost reports with found inventory.
           </p>
           <div className="landing-cta">
-            <Link href="/dashboard" className="landing-btn-primary">
-              Open Dashboard
+            <Link href="/matches" className="landing-btn-primary">
+              View Matches →
             </Link>
-            <Link href="/matches" className="landing-btn-secondary">
-              View Matches
+            <Link href="/dashboard" className="landing-btn-secondary">
+              Open Dashboard
             </Link>
           </div>
         </section>
       </main>
 
       {/* Fixed Footer */}
-      <footer className={`landing-foot reveal ${revealed ? 'active' : ''}`}>
+      <footer ref={footRef} className={`landing-foot reveal ${revealed ? 'active' : ''}`}>
         Secure Campus Item Recovery &middot; AI Matching
       </footer>
 
       {/* Scroll Height Track */}
-      <div className="landing-track" />
+      <div ref={trackRef} className="landing-track" />
+
+      {/* Recovery Dashboard Bottom Section */}
+      <section className="relative z-30 bg-[#070b12] border-t border-white/10 px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-mono uppercase tracking-wider">
+            <Layers className="w-3.5 h-3.5" />
+            Central Hub
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+            Recovery Dashboard
+          </h2>
+          <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
+            Monitor real-time recovery metrics, inspect Gemini similarity rankings, coordinate custody handoffs, and manage your reported items in one centralized command center.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold text-xs sm:text-sm transition-colors shadow-lg shadow-sky-500/20"
+            >
+              <Layers className="w-4 h-4" />
+              Open Recovery Dashboard →
+            </Link>
+            <Link
+              href="/matches"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium text-xs sm:text-sm transition-colors"
+            >
+              <Sparkles className="w-4 h-4 text-sky-400" />
+              View Matches
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Full Platform Footer */}
+      <div className="relative z-30 bg-[#070b12]">
+        <Footer />
+      </div>
 
 
       {/* Item Report Modal */}
