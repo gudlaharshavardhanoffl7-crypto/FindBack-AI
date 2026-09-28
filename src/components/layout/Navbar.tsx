@@ -69,37 +69,48 @@ export default function Navbar() {
     setProfileDropdownOpen(false);
   };
 
+  const isHomePage = pathname === '/';
+
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-black/10 bg-white/90 backdrop-blur-md transition-colors">
+      <header
+        className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+          isHomePage
+            ? 'bg-transparent border-b border-transparent'
+            : 'border-b border-black/10 bg-white/90 backdrop-blur-md'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Brand Logo */}
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-9 h-9 rounded-xl bg-[#0d0c0b] border border-black/10 flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
-              <Radar className="w-4.5 h-4.5 text-white" />
+          {/* Brand Logo - Highlighted Capsule */}
+          <Link
+            href="/"
+            className="flex items-center space-x-2.5 px-3 py-1.5 rounded-2xl bg-white/85 hover:bg-white backdrop-blur-md border border-black/10 shadow-xs transition-all group cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-xl bg-[#0d0c0b] border border-black/10 flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
+              <Radar className="w-4 h-4 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-tight text-[#0d0c0b] flex items-center gap-1.5">
-                FIND BACK <span className="text-sky-600 font-mono text-xs">AI</span>
+              <span className="text-xs sm:text-sm font-bold tracking-tight text-[#0d0c0b] flex items-center gap-1">
+                FIND BACK <span className="text-sky-600 font-mono text-[11px]">AI</span>
               </span>
-              <span className="text-[10px] text-slate-500 font-mono tracking-wider">
+              <span className="text-[9px] text-slate-500 font-mono tracking-wider">
                 MULTIMODAL RECOVERY
               </span>
             </div>
           </Link>
 
-          {/* Center Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-1">
+          {/* Center Navigation Links - Every Option Distinctly Highlighted */}
+          <nav className="hidden md:flex items-center p-1 rounded-full bg-white/85 backdrop-blur-md border border-black/10 shadow-xs space-x-1">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  className={`px-3.5 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? 'bg-black/5 text-[#0d0c0b] border border-black/15 font-semibold'
-                      : 'text-slate-600 hover:text-[#0d0c0b] hover:bg-black/5 border border-transparent'
+                      ? 'bg-[#0d0c0b] text-white shadow-xs'
+                      : 'text-[#0d0c0b] hover:bg-black/10 hover:text-black'
                   }`}
                 >
                   {link.label}
@@ -109,8 +120,8 @@ export default function Navbar() {
           </nav>
 
           {/* Right Action Hub: AI Assistant Button, Notifications, then Profile/Login Icon */}
-          <div className="flex items-center space-x-3">
-            {/* AI Assistant Button (Replaces Report Item) */}
+          <div className="flex items-center space-x-2.5">
+            {/* AI Assistant Button - Highlighted Solid Black Pill */}
             <button
               type="button"
               onClick={() => {
@@ -118,14 +129,14 @@ export default function Navbar() {
                 setNotificationsOpen(false);
                 setProfileDropdownOpen(false);
               }}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-[#0d0c0b] hover:bg-[#242220] text-white transition-all shadow-xs cursor-pointer group"
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#0d0c0b] hover:bg-[#27272a] text-white transition-all shadow-xs hover:shadow-md cursor-pointer group"
               aria-label="Open AI Assistant"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-300 group-hover:rotate-12 transition-transform" />
               <span>AI Assistant</span>
             </button>
 
-            {/* Notification Icon */}
+            {/* Notification Icon - Highlighted Pill */}
             <div className="relative">
               <button
                 type="button"
@@ -133,7 +144,7 @@ export default function Navbar() {
                   setNotificationsOpen(!notificationsOpen);
                   setProfileDropdownOpen(false);
                 }}
-                className="relative w-9 h-9 rounded-lg border border-black/10 bg-white hover:bg-black/5 flex items-center justify-center text-slate-600 hover:text-black transition-colors cursor-pointer"
+                className="relative w-9 h-9 rounded-full border border-black/10 bg-white/85 hover:bg-white backdrop-blur-md flex items-center justify-center text-[#0d0c0b] hover:text-black shadow-xs transition-all cursor-pointer"
                 aria-label="View notifications"
               >
                 <Bell className="w-4 h-4" />
@@ -194,7 +205,7 @@ export default function Navbar() {
                     setProfileDropdownOpen(!profileDropdownOpen);
                     setNotificationsOpen(false);
                   }}
-                  className="w-9 h-9 rounded-lg bg-black text-white font-semibold text-xs flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-9 h-9 rounded-full bg-[#0d0c0b] text-white font-semibold text-xs flex items-center justify-center shadow-xs cursor-pointer"
                   aria-label="User profile"
                 >
                   {currentUser.name.slice(0, 2).toUpperCase()}
@@ -203,7 +214,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setAuthModalOpen(true)}
-                  className="h-9 px-3 rounded-lg border border-black/10 bg-white hover:bg-black/5 flex items-center space-x-1.5 text-slate-700 hover:text-black transition-colors cursor-pointer text-xs font-medium"
+                  className="h-9 px-3.5 rounded-full border border-black/10 bg-white/85 hover:bg-white backdrop-blur-md flex items-center space-x-1.5 text-[#0d0c0b] hover:text-black shadow-xs transition-all cursor-pointer text-xs font-semibold"
                   aria-label="Sign in"
                 >
                   <User className="w-3.5 h-3.5" />
@@ -228,7 +239,7 @@ export default function Navbar() {
                     <Link
                       href="/dashboard"
                       onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs text-slate-700 hover:text-black hover:bg-black/5 transition-colors"
+                      className="flex items-center space-x-2 px-3 py-2 rounded-lg text-xs text-slate-700 hover:text-black hover:bg-black/5 transition-colors"
                     >
                       <Layers className="w-3.5 h-3.5 text-sky-600" />
                       <span>Recovery Dashboard</span>
@@ -236,7 +247,7 @@ export default function Navbar() {
                     <Link
                       href="/lost"
                       onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs text-slate-700 hover:text-black hover:bg-black/5 transition-colors"
+                      className="flex items-center space-x-2 px-3 py-2 rounded-lg text-xs text-slate-700 hover:text-black hover:bg-black/5 transition-colors"
                     >
                       <Layers className="w-3.5 h-3.5 text-sky-600" />
                       <span>My Reported Items</span>
@@ -244,7 +255,7 @@ export default function Navbar() {
                     <Link
                       href="/matches"
                       onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs text-slate-700 hover:text-black hover:bg-black/5 transition-colors"
+                      className="flex items-center space-x-2 px-3 py-2 rounded-lg text-xs text-slate-700 hover:text-black hover:bg-black/5 transition-colors"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-sky-600" />
                       <span>Active Matches</span>
@@ -254,7 +265,7 @@ export default function Navbar() {
                   <div className="mt-3 pt-3 border-t border-black/10">
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                      className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>Sign Out</span>
@@ -264,7 +275,7 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Mobile Menu Toggle Button */}
+            {/* Mobile Menu Toggle Button - Highlighted Pill */}
             <button
               type="button"
               onClick={() => {
@@ -272,7 +283,7 @@ export default function Navbar() {
                 setNotificationsOpen(false);
                 setProfileDropdownOpen(false);
               }}
-              className="md:hidden w-9 h-9 rounded-lg border border-black/10 bg-white hover:bg-black/5 flex items-center justify-center text-slate-700 hover:text-black transition-colors cursor-pointer"
+              className="md:hidden w-9 h-9 rounded-full border border-black/10 bg-white/85 hover:bg-white backdrop-blur-md flex items-center justify-center text-[#0d0c0b] hover:text-black shadow-xs transition-all cursor-pointer"
               aria-label="Toggle navigation menu"
               aria-expanded={mobileMenuOpen}
             >
@@ -281,10 +292,10 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile Navigation Drawer - Every Option Distinctly Highlighted */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-black/10 bg-white/95 backdrop-blur-xl px-4 py-3 space-y-3">
-            <div className="space-y-1">
+          <div className="md:hidden border-t border-black/10 bg-white/95 backdrop-blur-xl px-4 py-4 space-y-2 rounded-b-2xl shadow-2xl">
+            <div className="space-y-1.5">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href;
                 return (
@@ -292,16 +303,16 @@ export default function Navbar() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center justify-between px-3.5 py-2.5 text-xs font-medium rounded-lg transition-all ${
+                    className={`flex items-center justify-between px-4 py-2.5 text-xs font-semibold rounded-full transition-all ${
                       isActive
-                        ? 'bg-black/5 text-[#0d0c0b] border border-black/15 font-semibold'
-                        : 'text-slate-700 hover:text-black hover:bg-black/5 border border-transparent'
+                        ? 'bg-[#0d0c0b] text-white shadow-xs'
+                        : 'text-[#0d0c0b] bg-black/5 hover:bg-black/10'
                     }`}
                   >
                     <span>{link.label}</span>
                     {isActive && (
-                      <span className="text-[10px] text-[#0d0c0b] font-mono tracking-wide px-1.5 py-0.5 rounded bg-black/10">
-                        Current
+                      <span className="text-[10px] text-white/80 font-mono tracking-wide px-2 py-0.5 rounded-full bg-white/20">
+                        Active
                       </span>
                     )}
                   </Link>
@@ -309,18 +320,32 @@ export default function Navbar() {
               })}
             </div>
 
-            <div className="pt-2 border-t border-black/10 flex flex-col gap-2">
+            <div className="pt-2.5 border-t border-black/10 flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setMobileMenuOpen(false);
                   setAiAssistantOpen(true);
                 }}
-                className="flex items-center justify-center space-x-2 px-3 py-2 rounded-full text-xs font-medium text-white bg-[#0d0c0b] hover:bg-[#242220] transition-all shadow-xs cursor-pointer"
+                className="flex items-center justify-center space-x-2 px-4 py-2.5 rounded-full text-xs font-semibold text-white bg-[#0d0c0b] hover:bg-[#27272a] transition-all shadow-xs cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                 <span>Open AI Assistant</span>
               </button>
+
+              {!currentUser && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setAuthModalOpen(true);
+                  }}
+                  className="flex items-center justify-center space-x-2 px-4 py-2.5 rounded-full text-xs font-semibold text-[#0d0c0b] bg-white border border-black/10 shadow-xs hover:bg-black/5 transition-all cursor-pointer"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Sign In / Register</span>
+                </button>
+              )}
             </div>
           </div>
         )}

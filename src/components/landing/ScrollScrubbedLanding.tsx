@@ -38,6 +38,7 @@ export default function ScrollScrubbedLanding() {
   const panel1Ref = useRef<HTMLElement | null>(null);
   const panel2Ref = useRef<HTMLElement | null>(null);
   const panel3Ref = useRef<HTMLElement | null>(null);
+  const scrollPromptRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let isReady = false;
@@ -49,6 +50,7 @@ export default function ScrollScrubbedLanding() {
     const clip = videoRef.current;
     const bootBar = bootBarRef.current;
     const meter = meterRef.current;
+    const scrollPrompt = scrollPromptRef.current;
     const panels = [panel0Ref.current, panel1Ref.current, panel2Ref.current, panel3Ref.current];
 
     function setBootProgress(pct: number) {
@@ -246,6 +248,13 @@ export default function ScrollScrubbedLanding() {
           if (seekAt > clip.duration) seekAt = clip.duration;
           clip.currentTime = seekAt;
         }
+      }
+
+      if (scrollPrompt) {
+        const signalOpacity = Math.max(0, Math.min(1, 1 - currentProgress * 10));
+        scrollPrompt.style.opacity = signalOpacity.toFixed(3);
+        scrollPrompt.style.pointerEvents = signalOpacity > 0.05 ? 'auto' : 'none';
+        scrollPrompt.style.transform = 'translate3d(-50%, ' + ((1 - signalOpacity) * 16).toFixed(1) + 'px, 0)';
       }
 
       updatePanels(currentProgress);
@@ -608,23 +617,17 @@ export default function ScrollScrubbedLanding() {
           bottom: 0;
           left: 0;
           right: 0;
-          z-index: 40;
+          z-index: 20;
           display: flex;
           justify-content: center;
-          padding: 14px clamp(16px, 4vw, 24px)
-            max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px));
-          font-size: 12px;
-          line-height: 1.45;
+          padding: 8px 16px max(8px, env(safe-area-inset-bottom, 0px));
+          font-size: 11px;
+          line-height: 1.4;
           letter-spacing: 0.02em;
-          color: var(--fg-faint);
+          color: rgba(13, 12, 11, 0.45);
           text-align: center;
           pointer-events: none;
-          background: linear-gradient(
-            to top,
-            rgba(242, 240, 236, 0.92) 0%,
-            rgba(242, 240, 236, 0.72) 72%,
-            rgba(242, 240, 236, 0) 100%
-          );
+          background: transparent;
         }
 
         .landing-track {
@@ -793,6 +796,40 @@ export default function ScrollScrubbedLanding() {
           </div>
         </section>
       </main>
+
+      {/* Signal to Scroll Down the Home Page */}
+      <div
+        ref={scrollPromptRef}
+        onClick={() => {
+          window.scrollBy({
+            top: window.innerHeight * 0.85,
+            behavior: 'smooth',
+          });
+        }}
+        className="fixed bottom-7 sm:bottom-9 left-1/2 z-30 flex flex-col items-center cursor-pointer pointer-events-auto select-none group transition-transform duration-300"
+        style={{ transform: 'translate3d(-50%, 0, 0)' }}
+        aria-label="Scroll down to explore"
+      >
+        <div className="flex items-center space-x-2.5 px-4 py-2 rounded-full bg-white/90 hover:bg-white backdrop-blur-md border border-black/10 shadow-md group-hover:shadow-lg transition-all group-hover:-translate-y-0.5">
+          <div className="w-3.5 h-5 rounded-full border-[1.5px] border-[#0d0c0b]/70 flex items-start justify-center p-0.5">
+            <span className="w-1 h-1.5 rounded-full bg-[#0d0c0b] animate-bounce" />
+          </div>
+          <span className="text-[11px] font-semibold tracking-wider uppercase text-[#0d0c0b]">
+            Scroll Down
+          </span>
+          <svg
+            className="w-3.5 h-3.5 text-[#0d0c0b] animate-bounce"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </div>
+      </div>
 
       {/* Fixed Footer */}
       <footer className={`landing-foot reveal ${revealed ? 'active' : ''}`}>
