@@ -18,6 +18,7 @@ interface GoogleMapViewerProps {
   travelMode?: 'walking' | 'driving' | 'transit';
   activeItem?: Item | null;
   onSelectItem?: (item: Item | null) => void;
+  searchLocation?: string;
 }
 
 export default function GoogleMapViewer({
@@ -33,6 +34,7 @@ export default function GoogleMapViewer({
   travelMode = 'walking',
   activeItem: externalActiveItem,
   onSelectItem,
+  searchLocation = '',
 }: GoogleMapViewerProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
   const hasValidApiKey = Boolean(apiKey && apiKey !== 'your-google-maps-api-key');
@@ -79,6 +81,36 @@ export default function GoogleMapViewer({
     }
   }, [focusedCoordinates, destinationLocation, selectedMatch, setActiveItem]);
 
+  // Sync with searchLocation: geocode and center map
+  useEffect(() => {
+    if (searchLocation && searchLocation.trim().length > 2) {
+      const timer = setTimeout(async () => {
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+              searchLocation.trim()
+            )}&limit=1`
+          );
+          const data = await res.json();
+          if (data && data[0]) {
+            const newCoords = {
+              lat: parseFloat(data[0].lat),
+              lng: parseFloat(data[0].lon),
+            };
+            setCenter(newCoords);
+            setSelectedPin(newCoords);
+            if (onSelectCoordinates) {
+              onSelectCoordinates(newCoords);
+            }
+          }
+        } catch {
+          // fallback to Google Maps query inside iframe
+        }
+      }, 550);
+      return () => clearTimeout(timer);
+    }
+  }, [searchLocation, onSelectCoordinates]);
+
   const handleDeviceLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -100,11 +132,29 @@ export default function GoogleMapViewer({
     }
   };
 
+  const handleMapSurfaceClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!selectable) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const xRatio = (e.clientX - rect.left) / rect.width - 0.5;
+    const yRatio = (e.clientY - rect.top) / rect.height - 0.5;
+    const delta = 0.04 / Math.pow(2, (zoom || 14) - 12);
+    const newLat = Number((center.lat - yRatio * delta).toFixed(5));
+    const newLng = Number((center.lng + xRatio * delta).toFixed(5));
+    const newCoords = { lat: newLat, lng: newLng };
+    setCenter(newCoords);
+    setSelectedPin(newCoords);
+    if (onSelectCoordinates) {
+      onSelectCoordinates(newCoords);
+    }
+  };
+
   const isRouting = Boolean(userLocation && destinationLocation);
   const directionsModeParam = travelMode === 'walking' ? 'walking' : travelMode === 'transit' ? 'transit' : 'driving';
 
   const embedSrc = isRouting && userLocation && destinationLocation
     ? `https://maps.google.com/maps?saddr=${userLocation.lat},${userLocation.lng}&daddr=${destinationLocation.lat},${destinationLocation.lng}&directionsmode=${directionsModeParam}&hl=en&output=embed`
+    : searchLocation && searchLocation.trim()
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(searchLocation.trim())}&hl=en&z=${zoom}&output=embed`
     : `https://maps.google.com/maps?q=${encodeURIComponent(`${center.lat},${center.lng}`)}&hl=en&z=${zoom}&output=embed`;
 
   const externalMapUrl = isRouting && userLocation && destinationLocation
@@ -230,8 +280,27 @@ export default function GoogleMapViewer({
             className="w-full h-full filter saturate-105"
           />
 
+          {/* Interactive Click-to-Point Overlay when selectable */}
+          {selectable && (
+            <div
+              onClick={handleMapSurfaceClick}
+              className="absolute inset-0 z-20 cursor-crosshair flex items-center justify-center pointer-events-auto"
+              title="Click anywhere to point out location on Google Maps"
+            >
+              <div className="relative flex flex-col items-center pointer-events-none -translate-y-3">
+                <span className="absolute -top-1 w-9 h-9 rounded-full bg-rose-500/25 animate-ping" />
+                <div className="w-8 h-8 rounded-full bg-[#0d0c0b] text-white border-2 border-white flex items-center justify-center shadow-xl">
+                  <MapPin className="w-4 h-4 text-rose-400" />
+                </div>
+                <div className="mt-1.5 px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-[#0d0c0b] border border-black/10 text-[10px] font-mono shadow-md font-semibold whitespace-nowrap">
+                  📍 {center.lat.toFixed(4)}°, {center.lng.toFixed(4)}° &middot; Click to Point Location
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* User Location Pulse Marker if available */}
-          {userLocation && !isRouting && (
+          {userLocation && !isRouting && !selectable && (
             <div
               className="absolute pointer-events-auto -translate-x-1/2 -translate-y-1/2 z-10"
               style={{ top: '50%', left: '50%' }}

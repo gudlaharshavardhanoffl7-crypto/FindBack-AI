@@ -1,4 +1,4 @@
-import { Item, ItemMatch, ItemType } from '@/types';
+import { Item, ItemMatch, ItemType, ItemMessage } from '@/types';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { cosineSimilarity, generateDeterministicEmbedding } from './gemini';
 
@@ -122,6 +122,22 @@ INITIAL_ITEMS.forEach((item) => {
 
 // In-memory runtime items cache
 const memoryItems: Item[] = [...INITIAL_ITEMS];
+
+// In-memory runtime messages cache
+const memoryMessages: ItemMessage[] = [
+  {
+    id: 'msg-seed-1',
+    item_id: 'item-lost-keys-01',
+    item_title: 'Brass Ring with 3 Keys and Blue Tag #402',
+    item_type: 'lost',
+    sender_name: 'Campus Security Desk',
+    sender_contact: 'security.desk@campus.edu',
+    recipient_contact: 'sarah.k@example.com',
+    message: 'Hello, a set of 3 brass keys with a blue tag stamped 402 was turned into the North Concourse desk. Please bring identification to claim.',
+    status: 'sent',
+    created_at: new Date(Date.now() - 3600 * 1000 * 3).toISOString(),
+  },
+];
 
 export async function getItems(filterType?: ItemType): Promise<Item[]> {
   if (isSupabaseConfigured && supabase) {
@@ -359,3 +375,74 @@ export async function getAllMatches(): Promise<ItemMatch[]> {
 
   return allMatches.sort((a, b) => b.similarity_score - a.similarity_score);
 }
+
+/**
+  * Saves a message between users regarding a lost or found item
+  */
+export async function saveMessage(
+  data: Omit<ItemMessage, 'id' | 'created_at'> & { id?: string }
+): Promise<ItemMessage> {
+  const generatedId =
+    data.id ||
+    (typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : 'msg-' + Date.now() + '-' + Math.random().toString(36).substring(7));
+
+  const newMsg: ItemMessage = {
+    id: generatedId,
+    item_id: data.item_id,
+    item_title: data.item_title,
+    item_type: data.item_type,
+    sender_name: data.sender_name.trim(),
+    sender_contact: data.sender_contact.trim(),
+    recipient_contact: data.recipient_contact ? data.recipient_contact.trim() : undefined,
+    message: data.message.trim(),
+    status: data.status || 'sent',
+    created_at: new Date().toISOString(),
+  };
+
+  memoryMessages.unshift(newMsg);
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('item_messages').insert({
+        id: newMsg.id,
+        item_id: newMsg.item_id,
+        sender_name: newMsg.sender_name,
+        sender_contact: newMsg.sender_contact,
+        message: newMsg.message,
+        created_at: newMsg.created_at,
+      });
+    } catch (err) {
+      console.warn('Supabase message insert fallback:', err);
+    }
+  }
+
+  return newMsg;
+}
+
+/**
+ * Retrieves messages, optionally filtered by item_id
+ */
+export async function getMessages(itemId?: string): Promise<ItemMessage[]> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      let query = supabase.from('item_messages').select('*').order('created_at', { ascending: false });
+      if (itemId) {
+        query = query.eq('item_id', itemId);
+      }
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) {
+        return data as ItemMessage[];
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (itemId) {
+    return memoryMessages.filter((m) => m.item_id === itemId);
+  }
+  return memoryMessages;
+}
+

@@ -2,15 +2,16 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, ArrowUpRight } from 'lucide-react';
+import { MapPin, Calendar, ArrowUpRight, MessageSquare } from 'lucide-react';
 import { Item } from '@/types';
 
 interface ItemCardProps {
   item: Item;
   onInspect?: (item: Item) => void;
+  onMessage?: (item: Item) => void;
 }
 
-export default function ItemCard({ item, onInspect }: ItemCardProps) {
+export default function ItemCard({ item, onInspect, onMessage }: ItemCardProps) {
   const isFound = item.type === 'found';
   const formattedDate = new Date(item.created_at).toLocaleDateString('en-US', {
     month: 'short',
@@ -72,26 +73,43 @@ export default function ItemCard({ item, onInspect }: ItemCardProps) {
         </p>
       </div>
 
-      {/* Footer Info */}
-      <div className="pt-3 border-t border-black/5 flex items-center justify-between text-xs">
-        <div className="flex items-center space-x-1 text-slate-500 truncate max-w-[190px]">
+      {/* Footer Info & Actions */}
+      <div className="pt-3 border-t border-black/5 flex items-center justify-between gap-2 text-xs">
+        <div className="flex items-center space-x-1 text-slate-500 truncate max-w-[130px] sm:max-w-[150px]">
           <MapPin className="w-3 h-3 text-slate-700 shrink-0" />
           <span className="truncate text-[11px]">
             {item.location_name || 'Campus Zone'}
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (onInspect) onInspect(item);
-          }}
-          className="flex items-center space-x-1 text-[11px] font-semibold text-[#0d0c0b] group-hover:underline"
-        >
-          <span>Inspect</span>
-          <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-        </button>
+        <div className="flex items-center space-x-1.5 shrink-0">
+          {onMessage && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMessage(item);
+              }}
+              className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-full bg-[#0d0c0b] hover:bg-[#27272a] text-white text-[11px] font-medium shadow-xs transition-transform active:scale-95 cursor-pointer"
+              title={isFound ? 'Send message to finder' : 'Found this item? Send message to owner'}
+            >
+              <MessageSquare className="w-3 h-3 text-emerald-400" />
+              <span>{isFound ? 'Claim' : 'I Found This'}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onInspect) onInspect(item);
+            }}
+            className="p-1 text-slate-500 hover:text-black hover:bg-black/5 rounded-full transition-colors"
+            title="Inspect full dossier"
+          >
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </motion.div>
   );

@@ -10,6 +10,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Navigation,
+  AlertCircle,
 } from 'lucide-react';
 import { Item, ItemType, ItemMatch } from '@/types';
 import GoogleMapViewer from '@/components/maps/GoogleMapViewer';
@@ -62,11 +63,21 @@ export default function ItemReportModal({
     if (typeof window !== 'undefined' && 'geolocation' in navigator) {
       setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
+        async (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           setCoordinates({ lat, lng });
-          if (!locationName) {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            const data = await res.json();
+            if (data && data.display_name) {
+              const parts = data.display_name.split(',');
+              const clean = parts.slice(0, 3).join(',').trim();
+              setLocationName(clean);
+            } else {
+              setLocationName(`Current GPS (${lat.toFixed(4)}°, ${lng.toFixed(4)}°)`);
+            }
+          } catch {
             setLocationName(`Current GPS (${lat.toFixed(4)}°, ${lng.toFixed(4)}°)`);
           }
           setIsLocating(false);
@@ -77,6 +88,25 @@ export default function ItemReportModal({
         },
         { enableHighAccuracy: true, timeout: 8000 }
       );
+    }
+  };
+
+  const handleSelectCoordinates = async (coords: { lat: number; lng: number; locationName?: string }) => {
+    setCoordinates({ lat: coords.lat, lng: coords.lng });
+    if (coords.locationName) {
+      setLocationName(coords.locationName);
+    } else if (!locationName || locationName.startsWith('Current GPS')) {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`);
+        const data = await res.json();
+        if (data && data.display_name) {
+          const parts = data.display_name.split(',');
+          const clean = parts.slice(0, 3).join(',').trim();
+          setLocationName(clean);
+        }
+      } catch {
+        // preserve current location
+      }
     }
   };
 
@@ -95,12 +125,25 @@ export default function ItemReportModal({
     }
   };
 
+  // Compute missing details for strict validation
+  const missingFields: string[] = [];
+  if (!title.trim() || title.trim().length < 3) missingFields.push('Item Title (at least 3 characters)');
+  if (!category.trim()) missingFields.push('Category');
+  if (!description.trim() || description.trim().length < 10) missingFields.push('Description (at least 10 characters)');
+  if (!imageBase64 && !imagePreview) missingFields.push('Item Photo (Upload a photo or snapshot)');
+  if (!locationName.trim() || locationName.trim().length < 3) missingFields.push('Location Name');
+  if (!coordinates || typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') missingFields.push('Google Map Pin Coordinates');
+  if (!contactEmail.trim() || !contactEmail.includes('@') || !contactEmail.includes('.')) missingFields.push('Valid Contact Email');
+  if (!contactPhone.trim() || contactPhone.trim().length < 7) missingFields.push('Valid Contact Phone');
+
+  const isFormComplete = missingFields.length === 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!title.trim() || !description.trim()) {
-      setErrorMsg('Please specify both an item title and an identification description.');
+    if (missingFields.length > 0) {
+      setErrorMsg(`All details must be provided before submission. Missing: ${missingFields.join('; ')}.`);
       return;
     }
 
@@ -340,7 +383,7 @@ export default function ItemReportModal({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Item Title
+                  Item Title <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -354,7 +397,7 @@ export default function ItemReportModal({
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Category
+                  Category <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={category}
@@ -373,7 +416,7 @@ export default function ItemReportModal({
             {/* Visual Identification Description */}
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">
-                Visual Identification Details (Engravings, serial codes, marks, materials)
+                Visual Identification Details <span className="text-rose-500">*</span>
               </label>
               <textarea
                 rows={3}
@@ -385,13 +428,24 @@ export default function ItemReportModal({
               />
             </div>
 
-            {/* Photo / Image Upload */}
+            {/* Photo / Image Upload (Strictly Required) */}
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Item Photo (Processed by Gemini Multimodal Vision)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-medium text-slate-700">
+                  Item Photo (Processed by Gemini Multimodal Vision) <span className="text-rose-500">*</span>
+                </label>
+                {!(imagePreview || imageBase64) && (
+                  <span className="text-[10px] text-rose-600 font-mono">Photo Required</span>
+                )}
+              </div>
               <div className="flex items-center space-x-3">
-                <label className="flex-1 flex flex-col items-center justify-center p-4 border border-dashed border-black/20 rounded-2xl bg-[#faf9f6] hover:bg-slate-100 cursor-pointer transition-colors">
+                <label
+                  className={`flex-1 flex flex-col items-center justify-center p-4 border border-dashed rounded-2xl bg-[#faf9f6] hover:bg-slate-100 cursor-pointer transition-colors ${
+                    !(imagePreview || imageBase64)
+                      ? 'border-amber-300 hover:border-black/30'
+                      : 'border-emerald-300 bg-emerald-50/20'
+                  }`}
+                >
                   <Camera className="w-5 h-5 text-slate-700 mb-1" />
                   <span className="text-xs text-slate-800 font-medium">Upload photo or snapshot</span>
                   <span className="text-[10px] text-slate-500">JPG, PNG, WebP up to 10MB</span>
@@ -403,7 +457,7 @@ export default function ItemReportModal({
                   />
                 </label>
                 {imagePreview && (
-                  <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-black/10 shadow-xs">
+                  <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-black/10 shadow-xs shrink-0">
                     <img
                       src={imagePreview}
                       alt="Preview"
@@ -431,12 +485,13 @@ export default function ItemReportModal({
                   <MapPin className="w-3.5 h-3.5 text-slate-800" />
                   <span>
                     {itemType === 'found'
-                      ? 'Drop Pin Where Item Was Found'
-                      : 'Approximate Lost Location'}
+                      ? 'Discovered Location & Google Maps Pin'
+                      : 'Reported Lost Location & Google Maps Pin'}{' '}
+                    <span className="text-rose-500">*</span>
                   </span>
                 </label>
                 {coordinates && (
-                  <span className="text-[11px] font-mono text-slate-600">
+                  <span className="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                     {coordinates.lat.toFixed(4)}°, {coordinates.lng.toFixed(4)}°
                   </span>
                 )}
@@ -445,10 +500,11 @@ export default function ItemReportModal({
               <div className="flex items-center gap-2 mb-2">
                 <input
                   type="text"
-                  placeholder="Station name, campus intersection, or room (e.g. Science Library 2F)"
+                  placeholder="Type building, station, or landmark to show on Google Maps..."
                   value={locationName}
                   onChange={(e) => setLocationName(e.target.value)}
                   className="flex-1 bg-[#f4f2ee] border border-black/10 rounded-full px-4 py-2.5 text-xs text-[#0d0c0b] placeholder-slate-400 focus:outline-none focus:border-black"
+                  required
                 />
                 <button
                   type="button"
@@ -462,18 +518,17 @@ export default function ItemReportModal({
                 </button>
               </div>
 
-              {/* Interactive Google Map */}
+              {/* Interactive Google Map with live search and click-to-point */}
               <GoogleMapViewer
                 selectable={true}
-                height="190px"
+                height="210px"
+                searchLocation={locationName}
                 focusedCoordinates={coordinates}
-                onSelectCoordinates={(coords) => {
-                  setCoordinates({ lat: coords.lat, lng: coords.lng });
-                  if (coords.locationName) setLocationName(coords.locationName);
-                }}
+                onSelectCoordinates={handleSelectCoordinates}
               />
-              <p className="text-[11px] text-slate-500">
-                Click on the map surface or tap Use My GPS above to pinpoint exact Google Maps coordinates.
+              <p className="text-[11px] text-slate-500 flex items-center justify-between">
+                <span>Type location above or click anywhere on the map to point out the exact spot.</span>
+                <span className="font-mono text-[10px] text-slate-400">Click-to-Point Enabled</span>
               </p>
             </div>
 
@@ -481,10 +536,11 @@ export default function ItemReportModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-black/10">
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Contact Email
+                  Contact Email <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="email"
+                  required
                   placeholder="name@domain.com"
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
@@ -493,10 +549,11 @@ export default function ItemReportModal({
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Contact Phone
+                  Contact Phone <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="tel"
+                  required
                   placeholder="+1 (555) 000-0000"
                   value={contactPhone}
                   onChange={(e) => setContactPhone(e.target.value)}
@@ -505,12 +562,36 @@ export default function ItemReportModal({
               </div>
             </div>
 
+            {/* Live Required Details Checklist */}
+            <div className="pt-2">
+              {isFormComplete ? (
+                <div className="flex items-center space-x-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
+                  <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                  <span>All details completed and verified. Ready for submission and AI matching!</span>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
+                  <div className="flex items-center space-x-1.5 font-semibold text-amber-800">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>Complete all required details to submit ({missingFields.length} remaining):</span>
+                  </div>
+                  <p className="text-[11px] text-amber-700 leading-relaxed">
+                    Missing: {missingFields.join('; ')}
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Submit Button */}
-            <div className="pt-3">
+            <div className="pt-2">
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full flex items-center justify-center space-x-2 bg-[#0d0c0b] hover:bg-[#242220] text-white font-medium py-3 px-4 rounded-full transition-colors text-xs cursor-pointer shadow-sm disabled:opacity-50"
+                disabled={isSubmitting || !isFormComplete}
+                className={`w-full flex items-center justify-center space-x-2 text-white font-medium py-3 px-4 rounded-full transition-all text-xs shadow-sm ${
+                  isFormComplete
+                    ? 'bg-[#0d0c0b] hover:bg-[#242220] cursor-pointer active:scale-98'
+                    : 'bg-slate-400 cursor-not-allowed opacity-75'
+                }`}
               >
                 {isSubmitting ? (
                   <div className="flex items-center space-x-2">
@@ -519,7 +600,11 @@ export default function ItemReportModal({
                   </div>
                 ) : (
                   <>
-                    <span>Submit & Run AI Similarity Match</span>
+                    <span>
+                      {isFormComplete
+                        ? 'Submit & Run AI Similarity Match'
+                        : 'Submit (Complete All Details Above First)'}
+                    </span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </>
                 )}

@@ -52,3 +52,17 @@ export interface FilterOptions {
   status?: ItemStatus | 'all';
   hasCoordinates?: boolean;
 }
+
+export interface ItemMessage {
+  id: string;
+  item_id: string;
+  item_title: string;
+  item_type: ItemType;
+  sender_name: string;
+  sender_contact: string;
+  recipient_contact?: string;
+  message: string;
+  status?: 'sent' | 'read' | 'replied';
+  created_at: string;
+}
+

@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, AlertCircle } from 'lucide-react';
+import { Search, Plus, AlertCircle, MessageSquare } from 'lucide-react';
 import { Item } from '@/types';
 import ItemCard from '@/components/items/ItemCard';
 import ItemReportModal from '@/components/items/ItemReportModal';
+import SendMessageModal from '@/components/items/SendMessageModal';
 import GoogleMapViewer from '@/components/maps/GoogleMapViewer';
 
 export default function FoundLogPage() {
@@ -14,6 +15,7 @@ export default function FoundLogPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [inspectedItem, setInspectedItem] = useState<Item | null>(null);
+  const [messagingItem, setMessagingItem] = useState<Item | null>(null);
 
   const fetchFoundItems = async () => {
     setLoading(true);
@@ -110,7 +112,12 @@ export default function FoundLogPage() {
       ) : filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredItems.map((item) => (
-            <ItemCard key={item.id} item={item} onInspect={(it) => setInspectedItem(it)} />
+            <ItemCard
+              key={item.id}
+              item={item}
+              onInspect={(it) => setInspectedItem(it)}
+              onMessage={(it) => setMessagingItem(it)}
+            />
           ))}
         </div>
       ) : (
@@ -162,11 +169,24 @@ export default function FoundLogPage() {
               </div>
             )}
 
-            <div className="pt-3 border-t border-black/10 flex justify-end">
+            <div className="pt-3 border-t border-black/10 flex flex-wrap items-center justify-between gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  const target = inspectedItem;
+                  setInspectedItem(null);
+                  setMessagingItem(target);
+                }}
+                className="px-4 py-2 rounded-full bg-[#0d0c0b] hover:bg-[#242220] text-xs text-white font-medium flex items-center space-x-1.5 shadow-xs cursor-pointer active:scale-95"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                <span>This is my item - Send message to finder</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setInspectedItem(null)}
-                className="px-5 py-2 rounded-full bg-[#0d0c0b] hover:bg-[#242220] text-xs text-white font-medium cursor-pointer"
+                className="px-4 py-2 rounded-full border border-black/10 hover:bg-slate-50 text-xs text-slate-700 font-medium cursor-pointer"
               >
                 Close Dossier
               </button>
@@ -174,6 +194,14 @@ export default function FoundLogPage() {
           </div>
         </div>
       )}
+
+      {/* Send Message to Person Who Found Item Modal */}
+      <SendMessageModal
+        isOpen={Boolean(messagingItem)}
+        onClose={() => setMessagingItem(null)}
+        item={messagingItem}
+        role="found_my_item"
+      />
 
       {/* Report Modal */}
       <ItemReportModal
