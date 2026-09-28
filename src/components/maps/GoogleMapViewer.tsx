@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 import { MapPin, Navigation, Shield, Compass, ExternalLink } from 'lucide-react';
 import { Item, ItemMatch } from '@/types';
@@ -13,6 +13,11 @@ interface GoogleMapViewerProps {
   onSelectCoordinates?: (coords: { lat: number; lng: number; locationName?: string }) => void;
   height?: string;
   zoom?: number;
+  userLocation?: { lat: number; lng: number } | null;
+  destinationLocation?: { lat: number; lng: number } | null;
+  travelMode?: 'walking' | 'driving' | 'transit';
+  activeItem?: Item | null;
+  onSelectItem?: (item: Item | null) => void;
 }
 
 export default function GoogleMapViewer({
@@ -23,25 +28,46 @@ export default function GoogleMapViewer({
   onSelectCoordinates,
   height = '520px',
   zoom = 14,
+  userLocation = null,
+  destinationLocation = null,
+  travelMode = 'walking',
+  activeItem: externalActiveItem,
+  onSelectItem,
 }: GoogleMapViewerProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
   const hasValidApiKey = Boolean(apiKey && apiKey !== 'your-google-maps-api-key');
 
-  const defaultCenter = focusedCoordinates || {
+  const defaultCenter = focusedCoordinates || destinationLocation || userLocation || {
     lat: selectedMatch?.found_item.latitude || 37.7749,
     lng: selectedMatch?.found_item.longitude || -122.4194,
   };
 
   const [center, setCenter] = useState(defaultCenter);
-  const [activeItem, setActiveItem] = useState<Item | null>(null);
+  const [internalActiveItem, setInternalActiveItem] = useState<Item | null>(null);
+  const activeItem = externalActiveItem !== undefined ? externalActiveItem : internalActiveItem;
+
+  const setActiveItem = useCallback(
+    (item: Item | null) => {
+      if (onSelectItem) {
+        onSelectItem(item);
+      } else {
+        setInternalActiveItem(item);
+      }
+    },
+    [onSelectItem]
+  );
+
   const [selectedPin, setSelectedPin] = useState<{ lat: number; lng: number } | null>(
-    focusedCoordinates || null
+    focusedCoordinates || destinationLocation || null
   );
 
   useEffect(() => {
     if (focusedCoordinates) {
       setCenter(focusedCoordinates);
       setSelectedPin(focusedCoordinates);
+    } else if (destinationLocation) {
+      setCenter(destinationLocation);
+      setSelectedPin(destinationLocation);
     } else if (selectedMatch?.found_item.latitude && selectedMatch?.found_item.longitude) {
       const coords = {
         lat: selectedMatch.found_item.latitude,
@@ -51,7 +77,7 @@ export default function GoogleMapViewer({
       setSelectedPin(coords);
       setActiveItem(selectedMatch.found_item);
     }
-  }, [focusedCoordinates, selectedMatch]);
+  }, [focusedCoordinates, destinationLocation, selectedMatch, setActiveItem]);
 
   const handleDeviceLocation = () => {
     if (navigator.geolocation) {
@@ -74,6 +100,17 @@ export default function GoogleMapViewer({
     }
   };
 
+  const isRouting = Boolean(userLocation && destinationLocation);
+  const directionsModeParam = travelMode === 'walking' ? 'walking' : travelMode === 'transit' ? 'transit' : 'driving';
+
+  const embedSrc = isRouting && userLocation && destinationLocation
+    ? `https://maps.google.com/maps?saddr=${userLocation.lat},${userLocation.lng}&daddr=${destinationLocation.lat},${destinationLocation.lng}&directionsmode=${directionsModeParam}&hl=en&output=embed`
+    : `https://maps.google.com/maps?q=${encodeURIComponent(`${center.lat},${center.lng}`)}&hl=en&z=${zoom}&output=embed`;
+
+  const externalMapUrl = isRouting && userLocation && destinationLocation
+    ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destinationLocation.lat},${destinationLocation.lng}&travelmode=${travelMode}`
+    : `https://www.google.com/maps?q=${center.lat},${center.lng}`;
+
   return (
     <div
       className="relative w-full rounded-2xl overflow-hidden border border-black/10 bg-white shadow-xl text-[#0d0c0b]"
@@ -86,9 +123,15 @@ export default function GoogleMapViewer({
           <span className="font-mono text-slate-700">
             {center.lat.toFixed(4)}° N, {Math.abs(center.lng).toFixed(4)}° W
           </span>
-          <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-black/5 font-sans font-medium">
-            Google Maps Integrated
-          </span>
+          {isRouting ? (
+            <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300 font-sans font-semibold">
+              Live Route Active
+            </span>
+          ) : (
+            <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-black/5 font-sans font-medium">
+              Google Maps Integrated
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2 pointer-events-auto">
@@ -104,12 +147,12 @@ export default function GoogleMapViewer({
           )}
 
           <a
-            href={`https://www.google.com/maps?q=${center.lat},${center.lng}`}
+            href={externalMapUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center space-x-1 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-800 font-medium rounded-full text-xs border border-black/10 shadow-sm transition-colors cursor-pointer"
           >
-            <span>Open in Google Maps</span>
+            <span>{isRouting ? 'Open Route in Google Maps' : 'Open in Google Maps'}</span>
             <ExternalLink className="w-3 h-3 text-slate-500" />
           </a>
         </div>
@@ -183,11 +226,25 @@ export default function GoogleMapViewer({
             loading="lazy"
             allowFullScreen
             referrerPolicy="no-referrer-when-downgrade"
-            src={`https://maps.google.com/maps?q=${encodeURIComponent(
-              `${center.lat},${center.lng}`
-            )}&hl=en&z=${zoom}&output=embed`}
+            src={embedSrc}
             className="w-full h-full filter saturate-105"
           />
+
+          {/* User Location Pulse Marker if available */}
+          {userLocation && !isRouting && (
+            <div
+              className="absolute pointer-events-auto -translate-x-1/2 -translate-y-1/2 z-10"
+              style={{ top: '50%', left: '50%' }}
+              title="Your Current GPS Position"
+            >
+              <div className="relative flex items-center justify-center">
+                <span className="absolute w-9 h-9 rounded-full bg-blue-500/30 animate-ping" />
+                <div className="w-7 h-7 rounded-full border-2 border-white bg-blue-600 flex items-center justify-center shadow-xl">
+                  <Navigation className="w-3.5 h-3.5 text-white" />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Overlay Interactive Pins for Registered Items */}
           <div className="absolute inset-0 pointer-events-none">
@@ -269,15 +326,19 @@ export default function GoogleMapViewer({
           <div className="mt-3 pt-3 border-t border-black/5 flex items-center justify-between text-xs">
             <div className="flex items-center space-x-1.5 text-slate-500">
               <Shield className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Verified Campus Zone</span>
+              <span>Verified Zone</span>
             </div>
             <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${activeItem.latitude || center.lat},${activeItem.longitude || center.lng}`}
+              href={
+                userLocation
+                  ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${activeItem.latitude || center.lat},${activeItem.longitude || center.lng}&travelmode=${travelMode}`
+                  : `https://www.google.com/maps/dir/?api=1&destination=${activeItem.latitude || center.lat},${activeItem.longitude || center.lng}`
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-semibold text-slate-900 hover:text-sky-600 flex items-center gap-1 transition-colors"
             >
-              <span>Directions</span>
+              <span>{userLocation ? 'Start GPS Route' : 'Directions'}</span>
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>

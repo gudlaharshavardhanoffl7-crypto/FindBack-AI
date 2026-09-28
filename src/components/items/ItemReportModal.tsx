@@ -9,6 +9,7 @@ import {
   Camera,
   ArrowRight,
   CheckCircle2,
+  Navigation,
 } from 'lucide-react';
 import { Item, ItemType, ItemMatch } from '@/types';
 import GoogleMapViewer from '@/components/maps/GoogleMapViewer';
@@ -51,10 +52,33 @@ export default function ItemReportModal({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [aiStatus, setAiStatus] = useState<string>('');
   const [resultItem, setResultItem] = useState<Item | null>(null);
   const [detectedMatches, setDetectedMatches] = useState<ItemMatch[]>([]);
   const [errorMsg, setErrorMsg] = useState<string>('');
+
+  const detectCurrentLocation = () => {
+    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+      setIsLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setCoordinates({ lat, lng });
+          if (!locationName) {
+            setLocationName(`Current GPS (${lat.toFixed(4)}°, ${lng.toFixed(4)}°)`);
+          }
+          setIsLocating(false);
+        },
+        (err) => {
+          console.warn('Geolocation error:', err);
+          setIsLocating(false);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -418,13 +442,25 @@ export default function ItemReportModal({
                 )}
               </div>
 
-              <input
-                type="text"
-                placeholder="Station name, campus intersection, or room (e.g. Science Library 2F)"
-                value={locationName}
-                onChange={(e) => setLocationName(e.target.value)}
-                className="w-full bg-[#f4f2ee] border border-black/10 rounded-full px-4 py-2 text-xs mb-2 text-[#0d0c0b] placeholder-slate-400 focus:outline-none focus:border-black"
-              />
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder="Station name, campus intersection, or room (e.g. Science Library 2F)"
+                  value={locationName}
+                  onChange={(e) => setLocationName(e.target.value)}
+                  className="flex-1 bg-[#f4f2ee] border border-black/10 rounded-full px-4 py-2.5 text-xs text-[#0d0c0b] placeholder-slate-400 focus:outline-none focus:border-black"
+                />
+                <button
+                  type="button"
+                  onClick={detectCurrentLocation}
+                  disabled={isLocating}
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-2.5 bg-[#0d0c0b] hover:bg-[#27272a] text-white text-xs font-semibold rounded-full shrink-0 shadow-xs cursor-pointer transition-all active:scale-95"
+                  title="Detect current device GPS coordinates"
+                >
+                  <Navigation className="w-3.5 h-3.5 text-sky-400" />
+                  <span>{isLocating ? 'Locating...' : 'Use GPS'}</span>
+                </button>
+              </div>
 
               {/* Interactive Google Map */}
               <GoogleMapViewer
