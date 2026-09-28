@@ -38,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -46,7 +46,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://d2ol7oe51mr4n9.cloudfront.net" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${interTight.variable} antialiased bg-[#070b12] text-slate-100 min-h-screen selection:bg-sky-500/30 selection:text-sky-200 relative`}
+        className={`${geistSans.variable} ${geistMono.variable} ${interTight.variable} antialiased bg-[#fcfbf9] text-[#0d0c0b] min-h-screen selection:bg-neutral-900 selection:text-white relative`}
       >
         {/* Dynamic App Shell */}
         <AppShell>{children}</AppShell>

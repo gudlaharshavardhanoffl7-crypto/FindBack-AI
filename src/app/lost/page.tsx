@@ -46,18 +46,18 @@ export default function LostLogPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10 space-y-8 bg-white text-slate-900">
       {/* Top Banner & Action */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-white/10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
-          <div className="flex items-center space-x-2 text-rose-400 font-mono text-xs uppercase tracking-wider mb-2">
-            <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+          <div className="flex items-center space-x-2 text-rose-700 font-mono text-xs uppercase tracking-wider mb-2">
+            <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse" />
             <span>Active Lost Property Index</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Lost Item Registry
           </h1>
-          <p className="text-xs text-slate-400 mt-1 max-w-xl leading-relaxed">
+          <p className="text-xs text-slate-600 mt-1 max-w-xl leading-relaxed">
             Reported missing physical assets currently indexed in the pgvector database.
             The system continuously compares each item against newly discovered objects.
           </p>
@@ -66,9 +66,9 @@ export default function LostLogPage() {
         <button
           type="button"
           onClick={() => setIsReportOpen(true)}
-          className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-rose-500 hover:bg-rose-400 text-slate-950 font-semibold rounded-lg text-xs transition-colors shadow-lg self-start md:self-auto"
+          className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-black hover:bg-neutral-800 text-white font-semibold rounded-lg text-xs transition-colors shadow-sm self-start md:self-auto cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 text-white" />
           <span>Report a Lost Item</span>
         </button>
       </div>
@@ -82,7 +82,7 @@ export default function LostLogPage() {
             placeholder="Search by keyword, tag number, or location..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full glass-input rounded-lg pl-10 pr-4 py-2.5 text-xs"
+            className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black"
           />
         </div>
 
@@ -90,7 +90,7 @@ export default function LostLogPage() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full glass-input rounded-lg px-3.5 py-2.5 text-xs bg-slate-900"
+            className="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-black"
           >
             {categories.map((cat) => (
               <option key={cat} value={cat}>
@@ -104,8 +104,8 @@ export default function LostLogPage() {
       {/* Item Grid */}
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center space-y-3">
-          <div className="w-6 h-6 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-mono text-slate-400">Loading lost property vectors...</span>
+          <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-mono text-slate-500">Loading lost property vectors...</span>
         </div>
       ) : filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -114,10 +114,10 @@ export default function LostLogPage() {
           ))}
         </div>
       ) : (
-        <div className="p-12 rounded-xl glass-panel text-center space-y-3 border border-white/5">
-          <AlertCircle className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-semibold text-white">No items found</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+        <div className="p-12 rounded-xl bg-white border border-slate-200 text-center space-y-3 shadow-sm">
+          <AlertCircle className="w-8 h-8 text-slate-400 mx-auto" />
+          <h3 className="text-sm font-bold text-slate-900">No items found</h3>
+          <p className="text-xs text-slate-600 max-w-sm mx-auto">
             No lost items match your current filter parameters. Try clearing the search query or report a new missing item.
           </p>
         </div>
@@ -127,30 +127,30 @@ export default function LostLogPage() {
       {inspectedItem && (
         <div className="fixed inset-0 z-[9994] flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-black/75 backdrop-blur-md"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setInspectedItem(null)}
           />
-          <div className="relative w-full max-w-xl glass-panel rounded-xl p-6 z-10 border border-white/10 space-y-4 shadow-2xl">
+          <div className="relative w-full max-w-xl bg-white rounded-xl p-6 z-10 border border-slate-200 space-y-4 shadow-2xl text-slate-900">
             <div className="flex justify-between items-start">
               <div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-rose-500/15 text-rose-300 border border-rose-500/20 font-semibold">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-rose-50 text-rose-700 border border-rose-200 font-semibold">
                   Lost Item Dossier
                 </span>
-                <h3 className="text-base font-semibold text-white mt-1">{inspectedItem.title}</h3>
+                <h3 className="text-base font-bold text-slate-900 mt-1">{inspectedItem.title}</h3>
               </div>
               <button
                 onClick={() => setInspectedItem(null)}
-                className="w-7 h-7 rounded-lg border border-white/10 flex items-center justify-center text-slate-400 hover:text-white"
+                className="w-7 h-7 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-black"
               >
                 ✕
               </button>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed">{inspectedItem.description}</p>
+            <p className="text-xs text-slate-600 leading-relaxed">{inspectedItem.description}</p>
 
             {inspectedItem.latitude && inspectedItem.longitude && (
-              <div className="space-y-1.5 pt-2 border-t border-white/10">
-                <span className="text-[11px] font-mono text-slate-400">Last Reported Location:</span>
+              <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                <span className="text-[11px] font-mono text-slate-500">Last Reported Location:</span>
                 <GoogleMapViewer
                   height="160px"
                   focusedCoordinates={{
@@ -162,11 +162,11 @@ export default function LostLogPage() {
               </div>
             )}
 
-            <div className="pt-3 border-t border-white/10 flex justify-end">
+            <div className="pt-3 border-t border-slate-100 flex justify-end">
               <button
                 type="button"
                 onClick={() => setInspectedItem(null)}
-                className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-xs text-white font-medium"
+                className="px-4 py-2 rounded-lg bg-black hover:bg-neutral-800 text-xs text-white font-semibold transition-colors"
               >
                 Close Dossier
               </button>

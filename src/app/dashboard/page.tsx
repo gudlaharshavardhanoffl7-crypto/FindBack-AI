@@ -60,26 +60,26 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="relative z-10 space-y-16 pb-20">
+    <div className="relative z-10 space-y-16 pb-20 bg-white text-slate-900">
       {/* Hero Section */}
       <section className="relative pt-8 sm:pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="max-w-3xl space-y-6">
           {/* Engineering Architecture Badge */}
-          <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg glass-panel-subtle border border-sky-500/25 text-xs text-sky-300 font-mono">
-            <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+          <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-800 font-mono">
+            <span className="w-2 h-2 rounded-full bg-black animate-pulse" />
             <span>PGVECTOR & GEMINI MULTIMODAL RECOVERY NETWORK</span>
           </div>
 
-          {/* Clean, Non-Vague Headline */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1]">
+          {/* Clean Headline */}
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.1]">
             Multimodal Lost and Found <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-200">
+            <span className="text-slate-900">
               Recovery Dashboard
             </span>
           </h1>
 
           {/* Concrete, High-Information Subheadline */}
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl">
             Index physical lost items with 768-dimensional vector embeddings, reverse-image vision,
             and precise coordinate mapping. Connect discoverers with owners through automated
             similarity matching and dual-blind privacy controls.
@@ -93,9 +93,9 @@ export default function DashboardPage() {
                 setReportType('lost');
                 setIsReportOpen(true);
               }}
-              className="flex items-center space-x-2 px-5 py-3 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-lg cursor-pointer"
+              className="flex items-center space-x-2 px-5 py-3 bg-black hover:bg-neutral-800 text-white font-semibold rounded-lg text-xs transition-colors shadow-sm cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-white" />
               <span>Report a Lost Item</span>
             </button>
 
@@ -105,15 +105,15 @@ export default function DashboardPage() {
                 setReportType('found');
                 setIsReportOpen(true);
               }}
-              className="flex items-center space-x-2 px-5 py-3 glass-panel border border-emerald-500/30 hover:border-emerald-400 text-emerald-300 hover:text-white font-semibold rounded-lg text-xs transition-colors cursor-pointer"
+              className="flex items-center space-x-2 px-5 py-3 bg-black hover:bg-neutral-800 text-white font-semibold rounded-lg text-xs transition-colors shadow-sm cursor-pointer"
             >
-              <FileCheck2 className="w-4 h-4 text-emerald-400" />
+              <FileCheck2 className="w-4 h-4 text-white" />
               <span>Log a Discovered Item</span>
             </button>
 
             <Link
               href="/matches"
-              className="flex items-center space-x-1.5 px-4 py-3 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+              className="flex items-center space-x-1.5 px-4 py-3 text-xs font-semibold text-slate-700 hover:text-black transition-colors"
             >
               <span>Explore AI Matches</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -122,7 +122,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Unified Search & Spatial Quick Filter */}
-        <div className="mt-12 glass-panel rounded-xl p-3 sm:p-4 border border-white/10 shadow-2xl">
+        <div className="mt-12 bg-white rounded-xl p-3 sm:p-4 border border-slate-200 shadow-sm">
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <div className="relative flex-1 w-full">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -131,7 +131,7 @@ export default function DashboardPage() {
                 placeholder="Search across indexed keys, spectacles, wallets, smartwatches, and electronics..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full glass-input rounded-lg pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-400"
+                className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-black"
               />
             </div>
 
@@ -139,10 +139,10 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('all')}
-                className={`flex-1 sm:flex-none px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                className={`flex-1 sm:flex-none px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'all'
-                    ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                    : 'text-slate-400 hover:text-white border border-transparent'
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-slate-600 hover:text-black hover:bg-slate-100'
                 }`}
               >
                 All Records
@@ -150,10 +150,10 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('lost')}
-                className={`flex-1 sm:flex-none px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                className={`flex-1 sm:flex-none px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'lost'
-                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                    : 'text-slate-400 hover:text-white border border-transparent'
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-slate-600 hover:text-black hover:bg-slate-100'
                 }`}
               >
                 Lost Items
@@ -161,10 +161,10 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('found')}
-                className={`flex-1 sm:flex-none px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                className={`flex-1 sm:flex-none px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'found'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    : 'text-slate-400 hover:text-white border border-transparent'
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-slate-600 hover:text-black hover:bg-slate-100'
                 }`}
               >
                 Found Items
@@ -179,14 +179,14 @@ export default function DashboardPage() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-sky-400" />
-              <h2 className="text-sm font-mono uppercase tracking-wider text-slate-200 font-bold">
+              <Sparkles className="w-4 h-4 text-black" />
+              <h2 className="text-sm font-mono uppercase tracking-wider text-slate-900 font-bold">
                 Latest Multimodal Vector Match
               </h2>
             </div>
             <Link
               href="/matches"
-              className="text-xs text-sky-400 hover:text-sky-300 font-medium"
+              className="text-xs text-black hover:underline font-semibold"
             >
               View All {matches.length} Matches →
             </Link>
@@ -200,52 +200,52 @@ export default function DashboardPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {/* Card 1 */}
-          <div className="glass-panel rounded-xl p-5 border border-white/10 space-y-3">
-            <div className="w-9 h-9 rounded-lg bg-sky-500/15 border border-sky-500/30 flex items-center justify-center">
-              <Cpu className="w-5 h-5 text-sky-400" />
+          <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-3 shadow-sm">
+            <div className="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center">
+              <Cpu className="w-5 h-5 text-white" />
             </div>
-            <h3 className="text-sm font-semibold text-white tracking-tight">
+            <h3 className="text-sm font-bold text-slate-900 tracking-tight">
               Multimodal Feature Decomposition
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               Images and descriptive text are analyzed via Gemini Vision to break down physical
               attributes into materials, engraved tags, wear indicators, and serial tokens.
             </p>
-            <div className="pt-2 text-[10px] font-mono text-sky-400">
+            <div className="pt-2 text-[10px] font-mono text-slate-800 font-semibold">
               Dimension: 768-D Float Vectors
             </div>
           </div>
 
           {/* Card 2 */}
-          <div className="glass-panel rounded-xl p-5 border border-white/10 space-y-3">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
-              <Database className="w-5 h-5 text-emerald-400" />
+          <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-3 shadow-sm">
+            <div className="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center">
+              <Database className="w-5 h-5 text-white" />
             </div>
-            <h3 className="text-sm font-semibold text-white tracking-tight">
+            <h3 className="text-sm font-bold text-slate-900 tracking-tight">
               PGVector Cosine Distance Index
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               PostgreSQL with pgvector executes similarity queries using cosine distance
               operations. High-scoring pairs trigger automated notification alerts.
             </p>
-            <div className="pt-2 text-[10px] font-mono text-emerald-400">
+            <div className="pt-2 text-[10px] font-mono text-slate-800 font-semibold">
               Search Index: HNSW Cosine Distance
             </div>
           </div>
 
           {/* Card 3 */}
-          <div className="glass-panel rounded-xl p-5 border border-white/10 space-y-3">
-            <div className="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-amber-400" />
+          <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-3 shadow-sm">
+            <div className="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center">
+              <Shield className="w-5 h-5 text-white" />
             </div>
-            <h3 className="text-sm font-semibold text-white tracking-tight">
+            <h3 className="text-sm font-bold text-slate-900 tracking-tight">
               Dual-Blind Privacy Handshake
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               Found item discovery coordinates are plotted on satellite maps without exposing
               personal telephone numbers or names until both individuals consent.
             </p>
-            <div className="pt-2 text-[10px] font-mono text-amber-400">
+            <div className="pt-2 text-[10px] font-mono text-slate-800 font-semibold">
               Protocol: Bilateral Consent Token
             </div>
           </div>
@@ -254,12 +254,12 @@ export default function DashboardPage() {
 
       {/* Active Indexed Catalog Feed */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-4 border-b border-white/10">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-4 border-b border-slate-200">
           <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">
               Active Property Database ({filteredItems.length})
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600">
               Recently registered physical items across metropolitan discovery zones.
             </p>
           </div>
@@ -267,19 +267,19 @@ export default function DashboardPage() {
           <div className="flex items-center space-x-2">
             <Link
               href="/lost"
-              className="text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded bg-white/5 border border-white/10 transition-colors"
+              className="text-xs text-slate-700 hover:text-black px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors font-semibold"
             >
               Lost Directory
             </Link>
             <Link
               href="/found"
-              className="text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded bg-white/5 border border-white/10 transition-colors"
+              className="text-xs text-slate-700 hover:text-black px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors font-semibold"
             >
               Found Registry
             </Link>
             <Link
               href="/maps"
-              className="text-xs text-sky-400 hover:text-sky-300 px-2.5 py-1 rounded bg-sky-500/15 border border-sky-500/30 transition-colors"
+              className="text-xs text-white bg-black hover:bg-neutral-800 px-3 py-1.5 rounded-lg transition-colors font-semibold shadow-sm"
             >
               Full Map View
             </Link>
@@ -288,8 +288,8 @@ export default function DashboardPage() {
 
         {loading ? (
           <div className="py-16 flex flex-col items-center justify-center space-y-2">
-            <div className="w-6 h-6 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs font-mono text-slate-400">Querying indexed items...</span>
+            <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs font-mono text-slate-500">Querying indexed items...</span>
           </div>
         ) : filteredItems.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -298,7 +298,7 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : (
-          <div className="p-10 rounded-xl glass-panel text-center text-xs text-slate-400">
+          <div className="p-10 rounded-xl bg-white border border-slate-200 text-center text-xs text-slate-600 shadow-sm">
             No matching items registered. Click &quot;Report a Lost Item&quot; to index a new item.
           </div>
         )}
@@ -308,22 +308,22 @@ export default function DashboardPage() {
       {activeMapMatch && (
         <div className="fixed inset-0 z-[9995] flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setActiveMapMatch(null)}
           />
-          <div className="relative w-full max-w-2xl glass-panel rounded-xl p-6 z-10 border border-white/15 space-y-4">
+          <div className="relative w-full max-w-2xl bg-white rounded-xl p-6 z-10 border border-slate-200 space-y-4 shadow-2xl text-slate-900">
             <div className="flex justify-between items-center">
               <div>
-                <span className="text-[10px] font-mono uppercase text-emerald-400">
+                <span className="text-[10px] font-mono uppercase text-emerald-700 font-semibold">
                   Discovery Location Coordinates
                 </span>
-                <h3 className="text-base font-semibold text-white">
+                <h3 className="text-base font-bold text-slate-900">
                   {activeMapMatch.found_item.title}
                 </h3>
               </div>
               <button
                 onClick={() => setActiveMapMatch(null)}
-                className="w-7 h-7 rounded-lg border border-white/10 text-slate-400 hover:text-white cursor-pointer"
+                className="w-7 h-7 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500 hover:text-black cursor-pointer"
               >
                 ✕
               </button>
@@ -331,11 +331,11 @@ export default function DashboardPage() {
 
             <GoogleMapViewer selectedMatch={activeMapMatch} height="320px" zoom={14} />
 
-            <div className="flex justify-end pt-2 border-t border-white/10">
+            <div className="flex justify-end pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setActiveMapMatch(null)}
-                className="px-4 py-2 bg-white/10 hover:bg-white/15 text-xs text-white rounded-lg cursor-pointer"
+                className="px-4 py-2 bg-black hover:bg-neutral-800 text-xs text-white font-semibold rounded-lg cursor-pointer"
               >
                 Close Map
               </button>

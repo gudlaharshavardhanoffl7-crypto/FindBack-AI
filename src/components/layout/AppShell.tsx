@@ -11,7 +11,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   if (isLandingPage) {
     return (
-      <div className="min-h-screen relative flex flex-col bg-[#070b12]">
+      <div className="min-h-screen relative flex flex-col bg-[#f2f0ec]">
         <Navbar />
         <main className="flex-1 relative">{children}</main>
       </div>
@@ -19,7 +19,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#070b12] text-slate-100 relative">
+    <div className="min-h-screen flex flex-col bg-white text-[#0d0c0b] relative">
       <Navbar />
       <main className="flex-1 relative z-10">{children}</main>
       <Footer />

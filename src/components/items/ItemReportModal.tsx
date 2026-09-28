@@ -160,30 +160,30 @@ export default function ItemReportModal({
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-2xl glass-panel rounded-xl p-6 sm:p-8 text-slate-100 z-10 my-auto shadow-2xl border border-white/10"
+        className="relative w-full max-w-2xl bg-white rounded-xl p-6 sm:p-8 text-slate-900 z-10 my-auto shadow-2xl border border-slate-200"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-sky-500/15 border border-sky-500/30 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-sky-400" />
+            <div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-white tracking-tight">
+              <h3 className="text-base font-bold text-slate-900 tracking-tight">
                 {resultItem
                   ? 'Item Indexed in Vector Database'
                   : itemType === 'lost'
                   ? 'Report a Lost Physical Item'
                   : 'Log a Discovered / Found Item'}
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 Indexed with 768-D Gemini multimodal embeddings and geospatial coordinates
               </p>
             </div>
           </div>
           <button
             onClick={handleResetAndClose}
-            className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+            className="w-8 h-8 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-black transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -272,14 +272,14 @@ export default function ItemReportModal({
             )}
 
             {/* Type Switcher */}
-            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900/80 rounded-lg border border-white/10">
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg border border-slate-200">
               <button
                 type="button"
                 onClick={() => setItemType('lost')}
-                className={`py-2 px-3 text-xs font-medium rounded-md transition-all ${
+                className={`py-2 px-3 text-xs rounded-md transition-all ${
                   itemType === 'lost'
-                    ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30 font-semibold'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-black text-white font-semibold shadow-sm'
+                    : 'text-slate-600 hover:text-black'
                 }`}
               >
                 I Lost This Item
@@ -287,10 +287,10 @@ export default function ItemReportModal({
               <button
                 type="button"
                 onClick={() => setItemType('found')}
-                className={`py-2 px-3 text-xs font-medium rounded-md transition-all ${
+                className={`py-2 px-3 text-xs rounded-md transition-all ${
                   itemType === 'found'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-black text-white font-semibold shadow-sm'
+                    : 'text-slate-600 hover:text-black'
                 }`}
               >
                 I Discovered / Found This Item
@@ -300,7 +300,7 @@ export default function ItemReportModal({
             {/* Basic Info */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Item Title
                 </label>
                 <input
@@ -314,13 +314,13 @@ export default function ItemReportModal({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Category
                 </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full glass-input rounded-lg px-3 py-2 text-xs bg-slate-900"
+                  className="w-full glass-input rounded-lg px-3 py-2 text-xs bg-white text-slate-900 border border-slate-300"
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -333,7 +333,7 @@ export default function ItemReportModal({
 
             {/* Visual Identification Description */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Visual Identification Details (Engravings, serial codes, marks, materials)
               </label>
               <textarea
@@ -348,13 +348,13 @@ export default function ItemReportModal({
 
             {/* Photo / Image Upload */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Item Photo (Processed by Gemini Multimodal Vision)
               </label>
               <div className="flex items-center space-x-3">
-                <label className="flex-1 flex flex-col items-center justify-center p-4 border border-dashed border-white/20 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors">
-                  <Camera className="w-5 h-5 text-sky-400 mb-1" />
-                  <span className="text-xs text-slate-300 font-medium">Upload photo or snapshot</span>
+                <label className="flex-1 flex flex-col items-center justify-center p-4 border border-dashed border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors">
+                  <Camera className="w-5 h-5 text-black mb-1" />
+                  <span className="text-xs text-slate-700 font-medium">Upload photo or snapshot</span>
                   <span className="text-[10px] text-slate-500">JPG, PNG, WebP up to 10MB</span>
                   <input
                     type="file"
@@ -364,7 +364,7 @@ export default function ItemReportModal({
                   />
                 </label>
                 {imagePreview && (
-                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-white/20">
+                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200">
                     <img
                       src={imagePreview}
                       alt="Preview"
@@ -376,7 +376,7 @@ export default function ItemReportModal({
                         setImageBase64(null);
                         setImagePreview(null);
                       }}
-                      className="absolute top-1 right-1 p-0.5 rounded bg-black/70 text-white hover:bg-rose-500"
+                      className="absolute top-1 right-1 p-0.5 rounded bg-black/80 text-white hover:bg-rose-500"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -386,10 +386,10 @@ export default function ItemReportModal({
             </div>
 
             {/* Geographic Coordinates & Location Pin (Especially for Found Items) */}
-            <div className="space-y-2 pt-2 border-t border-white/10">
+            <div className="space-y-2 pt-2 border-t border-slate-200">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-slate-300 flex items-center space-x-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-sky-400" />
+                <label className="text-xs font-semibold text-slate-700 flex items-center space-x-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-black" />
                   <span>
                     {itemType === 'found'
                       ? 'Drop Pin Where Item Was Found'
@@ -397,7 +397,7 @@ export default function ItemReportModal({
                   </span>
                 </label>
                 {coordinates && (
-                  <span className="text-[11px] font-mono text-sky-400">
+                  <span className="text-[11px] font-mono text-black font-semibold">
                     {coordinates.lat.toFixed(4)}°, {coordinates.lng.toFixed(4)}°
                   </span>
                 )}
@@ -427,9 +427,9 @@ export default function ItemReportModal({
             </div>
 
             {/* Contact details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Contact Email
                 </label>
                 <input
@@ -441,7 +441,7 @@ export default function ItemReportModal({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Contact Phone
                 </label>
                 <input
@@ -459,11 +459,11 @@ export default function ItemReportModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex items-center justify-center space-x-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold py-2.5 px-4 rounded-lg transition-colors text-xs"
+                className="w-full flex items-center justify-center space-x-2 bg-black hover:bg-neutral-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors text-xs shadow-sm cursor-pointer"
               >
                 {isSubmitting ? (
                   <div className="flex items-center space-x-2">
-                    <span className="w-3 h-3 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
+                    <span className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
                     <span>{aiStatus || 'Indexing with AI...'}</span>
                   </div>
                 ) : (
