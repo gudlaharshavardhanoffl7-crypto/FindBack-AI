@@ -49,10 +49,12 @@ export default function Navbar() {
   ]);
 
   const navLinks = [
+    { label: 'Home', href: '/' },
+    { label: 'Dashboard', href: '/dashboard' },
     { label: 'Lost Log', href: '/lost' },
     { label: 'Found Log', href: '/found' },
     { label: 'Matches', href: '/matches' },
-    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Maps', href: '/maps' },
   ];
 
   const unreadCount = notifications.filter((n) => !n.read).length;

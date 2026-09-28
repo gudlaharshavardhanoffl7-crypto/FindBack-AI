@@ -3,18 +3,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Layers, Sparkles } from 'lucide-react';
 import ItemReportModal from '@/components/items/ItemReportModal';
-import Footer from '@/components/layout/Footer';
 import { ItemType } from '@/types';
 
 const VIDEO_URL =
   'https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/45567745-d826-44a2-a5ce-7ef670944e60.mp4';
 
 const CUES = [
-  [0.0, 0.0, 0.15, 0.23],
-  [0.35, 0.43, 0.57, 0.65],
-  [0.77, 0.85, 1.1, 1.2],
+  [0.0, 0.0, 0.14, 0.22],
+  [0.28, 0.36, 0.46, 0.54],
+  [0.58, 0.66, 0.76, 0.84],
+  [0.88, 0.94, 1.05, 1.15],
 ];
 
 const DRIFT = 22; // px of counter-scroll travel per panel
@@ -25,8 +24,6 @@ export default function ScrollScrubbedLanding() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const bootBarRef = useRef<HTMLElement | null>(null);
   const meterRef = useRef<HTMLElement | null>(null);
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const footRef = useRef<HTMLElement | null>(null);
 
   const [bootPctText, setBootPctText] = useState('LOADING 0%');
   const [bootDone, setBootDone] = useState(false);
@@ -40,6 +37,7 @@ export default function ScrollScrubbedLanding() {
   const panel0Ref = useRef<HTMLElement | null>(null);
   const panel1Ref = useRef<HTMLElement | null>(null);
   const panel2Ref = useRef<HTMLElement | null>(null);
+  const panel3Ref = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let isReady = false;
@@ -51,7 +49,7 @@ export default function ScrollScrubbedLanding() {
     const clip = videoRef.current;
     const bootBar = bootBarRef.current;
     const meter = meterRef.current;
-    const panels = [panel0Ref.current, panel1Ref.current, panel2Ref.current];
+    const panels = [panel0Ref.current, panel1Ref.current, panel2Ref.current, panel3Ref.current];
 
     function setBootProgress(pct: number) {
       const p = Math.max(0, Math.min(1, pct));
@@ -168,13 +166,6 @@ export default function ScrollScrubbedLanding() {
     }
 
     function calculateTargetProgress() {
-      if (trackRef.current) {
-        const track = trackRef.current;
-        const maxTrackScroll = track.offsetHeight - window.innerHeight;
-        if (maxTrackScroll <= 0) return 0;
-        const st = window.pageYOffset || document.documentElement.scrollTop || 0;
-        return Math.max(0, Math.min(1, st / maxTrackScroll));
-      }
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       if (maxScroll <= 0) return 0;
       const st = window.pageYOffset || document.documentElement.scrollTop || 0;
@@ -244,12 +235,6 @@ export default function ScrollScrubbedLanding() {
 
       if (meter) {
         meter.style.transform = 'scaleX(' + currentProgress.toFixed(4) + ')';
-      }
-
-      if (footRef.current) {
-        const atEnd = currentProgress >= 0.96;
-        footRef.current.style.opacity = atEnd ? '0' : '1';
-        footRef.current.style.transition = 'opacity 0.3s ease';
       }
 
       if (clip && clip.duration) {
@@ -626,8 +611,8 @@ export default function ScrollScrubbedLanding() {
         .landing-track {
           position: relative;
           z-index: 1;
-          height: 560vh;
-          min-height: 3200px;
+          height: 600vh;
+          min-height: 3600px;
         }
 
         @media (max-width: 768px) {
@@ -716,20 +701,20 @@ export default function ScrollScrubbedLanding() {
       {/* Scroll Meter */}
       <i ref={meterRef} className="landing-meter" id="meter" />
 
-      {/* Three Cross-Fading Text Panels */}
+      {/* Four Cross-Fading Text Panels */}
       <main className="landing-panels">
-        {/* Panel 1: Lost Log */}
+        {/* Panel 1: Lost Log (1st text change) */}
         <section ref={panel0Ref} className="landing-panel" data-panel id="lost">
-          <p className="landing-eyebrow">Missing Property Index</p>
+          <p className="landing-eyebrow">Campus Property Recovery Network</p>
           <h1 className="landing-h1">
-            Lost Log
+            Lost an item?<br />Search campus records.
           </h1>
           <p className="landing-sub">
-            Search and track registered missing items across campus. Submit photos and details to trigger multimodal vector matching against cataloged discoveries.
+            Submit a photo and details of your misplaced property. The system extracts visual features to search against registered found items.
           </p>
           <div className="landing-cta">
             <Link href="/lost" className="landing-btn-primary">
-              Open Lost Log →
+              Lost Log
             </Link>
             <button
               type="button"
@@ -744,18 +729,18 @@ export default function ScrollScrubbedLanding() {
           </div>
         </section>
 
-        {/* Panel 2: Found Log */}
+        {/* Panel 2: Found Log (2nd text change) */}
         <section ref={panel1Ref} className="landing-panel" data-panel id="found">
           <p className="landing-eyebrow">Discovered Property Registry</p>
           <h1 className="landing-h1">
-            Found Log
+            Found an item?<br />Log it securely.
           </h1>
           <p className="landing-sub">
-            Browse registered discoveries and custody records. Log newly found physical property to safely reconnect verified owners with finders.
+            Record the discovery location and item details. Connect verified owners with finders without exposing private personal information.
           </p>
           <div className="landing-cta">
             <Link href="/found" className="landing-btn-primary">
-              Open Found Log →
+              Found Log
             </Link>
             <button
               type="button"
@@ -765,75 +750,57 @@ export default function ScrollScrubbedLanding() {
               }}
               className="landing-btn-secondary"
             >
-              Log Found Item
+              Report Found Item
             </button>
           </div>
         </section>
 
-        {/* Panel 3: Matches */}
+        {/* Panel 3: Matches (3rd text change) */}
         <section ref={panel2Ref} className="landing-panel" data-panel id="matches">
           <p className="landing-eyebrow">Multimodal Vector Search</p>
           <h1 className="landing-h1">
-            Matches
+            Cosine similarity<br />across vision and text.
           </h1>
           <p className="landing-sub">
-            Cosine similarity computation across Gemini vision embeddings and text descriptions. Automated correlation ranking connects lost reports with found inventory.
+            Gemini vision embeddings generate 768-dimensional float vectors to compute similarity matches between missing items and campus inventory.
           </p>
           <div className="landing-cta">
             <Link href="/matches" className="landing-btn-primary">
-              View Matches →
+              Matches
             </Link>
             <Link href="/dashboard" className="landing-btn-secondary">
               Open Dashboard
             </Link>
           </div>
         </section>
+
+        {/* Panel 4: Dashboard (At last after scrolling whole home page) */}
+        <section ref={panel3Ref} className="landing-panel" data-panel id="dashboard">
+          <p className="landing-eyebrow">Central Operations Hub</p>
+          <h1 className="landing-h1">
+            Unified Recovery<br />Management Platform.
+          </h1>
+          <p className="landing-sub">
+            Access real-time analytics, verify ownership claims, manage campus inventory, and monitor AI similarity correlations in one centralized workspace.
+          </p>
+          <div className="landing-cta">
+            <Link href="/dashboard" className="landing-btn-primary">
+              Dashboard
+            </Link>
+            <Link href="/maps" className="landing-btn-secondary">
+              Campus Map
+            </Link>
+          </div>
+        </section>
       </main>
 
       {/* Fixed Footer */}
-      <footer ref={footRef} className={`landing-foot reveal ${revealed ? 'active' : ''}`}>
+      <footer className={`landing-foot reveal ${revealed ? 'active' : ''}`}>
         Secure Campus Item Recovery &middot; AI Matching
       </footer>
 
       {/* Scroll Height Track */}
-      <div ref={trackRef} className="landing-track" />
-
-      {/* Recovery Dashboard Bottom Section */}
-      <section className="relative z-30 bg-[#070b12] border-t border-white/10 px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-mono uppercase tracking-wider">
-            <Layers className="w-3.5 h-3.5" />
-            Central Hub
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-            Recovery Dashboard
-          </h2>
-          <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
-            Monitor real-time recovery metrics, inspect Gemini similarity rankings, coordinate custody handoffs, and manage your reported items in one centralized command center.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold text-xs sm:text-sm transition-colors shadow-lg shadow-sky-500/20"
-            >
-              <Layers className="w-4 h-4" />
-              Open Recovery Dashboard →
-            </Link>
-            <Link
-              href="/matches"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium text-xs sm:text-sm transition-colors"
-            >
-              <Sparkles className="w-4 h-4 text-sky-400" />
-              View Matches
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Full Platform Footer */}
-      <div className="relative z-30 bg-[#070b12]">
-        <Footer />
-      </div>
+      <div className="landing-track" />
 
 
       {/* Item Report Modal */}
