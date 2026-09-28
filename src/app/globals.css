@@ -90,3 +90,37 @@ html, body {
     linear-gradient(to right, rgba(13, 12, 11, 0.03) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(13, 12, 11, 0.03) 1px, transparent 1px);
 }
+
+/* Home Landing Page Styled Button Pill */
+.landing-btn-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 48px !important;
+  height: 48px !important;
+  padding: 0 34px !important;
+  border-radius: 9999px !important;
+  background-color: #0d0c0b !important;
+  color: #ffffff !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  border: 1px solid #0d0c0b !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18) !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.landing-btn-pill:hover {
+  background-color: #27272a !important;
+  border-color: #27272a !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.26) !important;
+}
+
+.landing-btn-pill:active {
+  transform: scale(0.97) !important;
+}

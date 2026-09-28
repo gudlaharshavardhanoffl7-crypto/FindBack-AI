@@ -522,7 +522,10 @@ export default function ScrollScrubbedLanding() {
 
         .landing-panels {
           position: fixed;
-          inset: 0;
+          top: 64px;
+          bottom: 0;
+          left: 0;
+          right: 0;
           z-index: 20;
           pointer-events: none;
         }
@@ -535,7 +538,7 @@ export default function ScrollScrubbedLanding() {
           align-items: center;
           justify-content: center;
           text-align: center;
-          padding: clamp(20px, 4vh, 48px) clamp(20px, 5vw, 60px);
+          padding: 16px clamp(16px, 4vw, 32px);
           opacity: 0;
           will-change: opacity, transform;
         }
@@ -547,7 +550,7 @@ export default function ScrollScrubbedLanding() {
           justify-content: center;
           text-align: center;
           width: 100%;
-          max-width: 820px;
+          max-width: 800px;
           margin: 0 auto;
         }
 
@@ -632,19 +635,12 @@ export default function ScrollScrubbedLanding() {
         }
 
         @media (max-width: 768px) {
-          .landing-nav a:not(.landing-pill) {
-            display: none;
-          }
-          .landing-chrome {
-            padding: max(12px, calc(env(safe-area-inset-top, 0px) + 8px)) clamp(16px, 4vw, 24px) 12px;
-          }
           .landing-panel {
-            padding: max(88px, calc(env(safe-area-inset-top, 0px) + 72px)) clamp(16px, 4vw, 24px)
-              max(84px, calc(env(safe-area-inset-bottom, 0px) + 68px));
+            padding: 16px;
           }
           .landing-h1 {
             font-size: clamp(32px, 8.2vw, 56px);
-            line-height: 1.02;
+            line-height: 1.04;
           }
           .landing-sub {
             font-size: 15px;
@@ -653,25 +649,11 @@ export default function ScrollScrubbedLanding() {
           .landing-cta {
             margin-top: 24px;
           }
-          .landing-cta .landing-pill {
-            height: 44px;
-            padding: 0 22px;
-            font-size: 14.5px;
-          }
         }
 
         @media (max-width: 480px) {
-          .landing-mark {
-            font-size: 14.5px;
-          }
-          .landing-pill {
-            height: 36px;
-            padding: 0 16px;
-            font-size: 13.5px;
-          }
           .landing-panel {
-            padding: max(76px, calc(env(safe-area-inset-top, 0px) + 60px)) 16px
-              max(74px, calc(env(safe-area-inset-bottom, 0px) + 56px));
+            padding: 12px;
           }
           .landing-h1 {
             font-size: clamp(28px, 8vw, 42px);
@@ -721,16 +703,21 @@ export default function ScrollScrubbedLanding() {
       <main className="landing-panels">
         {/* Panel 1 (1st text change) */}
         <section ref={panel0Ref} className="landing-panel" data-panel id="lost">
-          <div className="landing-content-block">
-            <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
-            <h1 className="landing-h1">
+          <div className="landing-content-block w-full max-w-3xl mx-auto flex flex-col items-center justify-center text-center px-4">
+            <p className="landing-eyebrow inline-flex items-center justify-center text-xs sm:text-sm font-medium tracking-wider text-neutral-500 uppercase mb-3 sm:mb-4 text-center">
+              Smart Matching &middot; Zero Friction
+            </p>
+            <h1 className="landing-h1 text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-[#0d0c0b] text-center leading-[1.06] max-w-2xl mx-auto">
               Upload a photo,<br />We sync the rest.
             </h1>
-            <p className="landing-sub">
+            <p className="landing-sub mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-neutral-600 max-w-xl mx-auto text-center leading-relaxed font-normal">
               Don&apos;t rely on handwritten registers or scattered WhatsApp groups. Our AI compares your missing item against everything found on campus in seconds.
             </p>
-            <div className="landing-cta">
-              <Link href="/lost" className="landing-btn-primary">
+            <div className="landing-cta mt-6 sm:mt-8 flex items-center justify-center gap-3.5 w-full pointer-events-auto">
+              <Link
+                href="/lost"
+                className="landing-btn-pill inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-[#0d0c0b] hover:bg-[#27272a] text-white text-sm sm:text-base font-medium shadow-md hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer border border-[#0d0c0b] pointer-events-auto"
+              >
                 Report a Lost item
               </Link>
             </div>
@@ -739,16 +726,21 @@ export default function ScrollScrubbedLanding() {
 
         {/* Panel 2 (2nd text change) */}
         <section ref={panel1Ref} className="landing-panel" data-panel id="found">
-          <div className="landing-content-block">
-            <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
-            <h1 className="landing-h1">
+          <div className="landing-content-block w-full max-w-3xl mx-auto flex flex-col items-center justify-center text-center px-4">
+            <p className="landing-eyebrow inline-flex items-center justify-center text-xs sm:text-sm font-medium tracking-wider text-neutral-500 uppercase mb-3 sm:mb-4 text-center">
+              Smart Matching &middot; Zero Friction
+            </p>
+            <h1 className="landing-h1 text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-[#0d0c0b] text-center leading-[1.06] max-w-2xl mx-auto">
               Found by chance,<br />Returning by choice.
             </h1>
-            <p className="landing-sub">
+            <p className="landing-sub mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-neutral-600 max-w-xl mx-auto text-center leading-relaxed font-normal">
               Found an item by chance that belongs to someone else and looking to return it. If you lost something recently, please reach out with a description so it can safely make its way back home.
             </p>
-            <div className="landing-cta">
-              <Link href="/found" className="landing-btn-primary">
+            <div className="landing-cta mt-6 sm:mt-8 flex items-center justify-center gap-3.5 w-full pointer-events-auto">
+              <Link
+                href="/found"
+                className="landing-btn-pill inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-[#0d0c0b] hover:bg-[#27272a] text-white text-sm sm:text-base font-medium shadow-md hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer border border-[#0d0c0b] pointer-events-auto"
+              >
                 Report a Found item
               </Link>
             </div>
@@ -757,16 +749,21 @@ export default function ScrollScrubbedLanding() {
 
         {/* Panel 3 (3rd text change) */}
         <section ref={panel2Ref} className="landing-panel" data-panel id="matches">
-          <div className="landing-content-block">
-            <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
-            <h1 className="landing-h1">
+          <div className="landing-content-block w-full max-w-3xl mx-auto flex flex-col items-center justify-center text-center px-4">
+            <p className="landing-eyebrow inline-flex items-center justify-center text-xs sm:text-sm font-medium tracking-wider text-neutral-500 uppercase mb-3 sm:mb-4 text-center">
+              Smart Matching &middot; Zero Friction
+            </p>
+            <h1 className="landing-h1 text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-[#0d0c0b] text-center leading-[1.06] max-w-2xl mx-auto">
               The ultimate matchmaker<br />for missing things.
             </h1>
-            <p className="landing-sub">
+            <p className="landing-sub mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-neutral-600 max-w-xl mx-auto text-center leading-relaxed font-normal">
               A smart platform designed to instantly bridge the gap between missing items and honest finders. Simply post what you lost or discovered, and our system will seamlessly match them to bring your belongings home.
             </p>
-            <div className="landing-cta">
-              <Link href="/matches" className="landing-btn-primary">
+            <div className="landing-cta mt-6 sm:mt-8 flex items-center justify-center gap-3.5 w-full pointer-events-auto">
+              <Link
+                href="/matches"
+                className="landing-btn-pill inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-[#0d0c0b] hover:bg-[#27272a] text-white text-sm sm:text-base font-medium shadow-md hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer border border-[#0d0c0b] pointer-events-auto"
+              >
                 Matched Items
               </Link>
             </div>
@@ -775,16 +772,21 @@ export default function ScrollScrubbedLanding() {
 
         {/* Panel 4 (4th text change) */}
         <section ref={panel3Ref} className="landing-panel" data-panel id="dashboard">
-          <div className="landing-content-block">
-            <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
-            <h1 className="landing-h1">
+          <div className="landing-content-block w-full max-w-3xl mx-auto flex flex-col items-center justify-center text-center px-4">
+            <p className="landing-eyebrow inline-flex items-center justify-center text-xs sm:text-sm font-medium tracking-wider text-neutral-500 uppercase mb-3 sm:mb-4 text-center">
+              Smart Matching &middot; Zero Friction
+            </p>
+            <h1 className="landing-h1 text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-[#0d0c0b] text-center leading-[1.06] max-w-2xl mx-auto">
               Hold tight,<br />loading your main dashboard.
             </h1>
-            <p className="landing-sub">
+            <p className="landing-sub mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-neutral-600 max-w-xl mx-auto text-center leading-relaxed font-normal">
               Taking you straight to your personal control center to manage your items. You will be automatically redirected to your dashboard to view your latest matches and active posts in just a moment.
             </p>
-            <div className="landing-cta">
-              <Link href="/dashboard" className="landing-btn-primary">
+            <div className="landing-cta mt-6 sm:mt-8 flex items-center justify-center gap-3.5 w-full pointer-events-auto">
+              <Link
+                href="/dashboard"
+                className="landing-btn-pill inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-[#0d0c0b] hover:bg-[#27272a] text-white text-sm sm:text-base font-medium shadow-md hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer border border-[#0d0c0b] pointer-events-auto"
+              >
                 Here you go
               </Link>
             </div>
