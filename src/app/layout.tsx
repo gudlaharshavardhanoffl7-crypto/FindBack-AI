@@ -18,7 +18,7 @@ const geistMono = localFont({
 
 const interTight = Inter_Tight({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500'],
   variable: '--font-inter-tight',
   display: 'swap',
 });
@@ -46,7 +46,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://d2ol7oe51mr4n9.cloudfront.net" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${interTight.variable} antialiased bg-[#fcfbf9] text-[#0d0c0b] min-h-screen selection:bg-neutral-900 selection:text-white relative`}
+        className={`${geistSans.variable} ${geistMono.variable} ${interTight.variable} antialiased bg-[#faf9f6] text-[#0d0c0b] min-h-screen selection:bg-[#0d0c0b] selection:text-white relative`}
       >
         {/* Dynamic App Shell */}
         <AppShell>{children}</AppShell>

@@ -31,14 +31,13 @@ export default function ScrollScrubbedLanding() {
 
   // Modals state
   const [isReportOpen, setIsReportOpen] = useState(false);
-  const [reportType, setReportType] = useState<ItemType>('lost');
+  const [reportType] = useState<ItemType>('lost');
 
   // Panel refs
   const panel0Ref = useRef<HTMLElement | null>(null);
   const panel1Ref = useRef<HTMLElement | null>(null);
   const panel2Ref = useRef<HTMLElement | null>(null);
   const panel3Ref = useRef<HTMLElement | null>(null);
-  const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let isReady = false;
@@ -250,19 +249,6 @@ export default function ScrollScrubbedLanding() {
       }
 
       updatePanels(currentProgress);
-
-      if (currentProgress >= 0.96) {
-        if (!redirectTimeoutRef.current) {
-          redirectTimeoutRef.current = setTimeout(() => {
-            router.push('/dashboard');
-          }, 3500);
-        }
-      } else {
-        if (redirectTimeoutRef.current) {
-          clearTimeout(redirectTimeoutRef.current);
-          redirectTimeoutRef.current = null;
-        }
-      }
     }
 
     function startLoop() {
@@ -282,14 +268,10 @@ export default function ScrollScrubbedLanding() {
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current);
-        redirectTimeoutRef.current = null;
-      }
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
-  }, [router]);
+  }, []);
 
   return (
     <div className="landing-root text-[#0d0c0b] bg-[#f2f0ec] font-['Inter_Tight',sans-serif] min-h-screen relative overflow-x-hidden selection:bg-[#0a0908]/15">
@@ -474,43 +456,68 @@ export default function ScrollScrubbedLanding() {
           transform-origin: left;
         }
 
-        .landing-btn-primary,
-        .landing-btn-secondary {
+        .landing-btn-primary {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          height: 44px;
           min-height: 44px;
-          padding: 0 28px;
-          border-radius: 9999px !important;
-          background: #0a0908 !important;
-          color: #ffffff !important;
+          height: 46px;
+          padding: 0 32px;
+          border-radius: 9999px;
+          background: #0d0c0b;
+          color: #ffffff;
           font-size: 14px;
           font-weight: 500;
           letter-spacing: -0.01em;
           text-decoration: none;
           white-space: nowrap;
-          border: 1px solid #0a0908;
-          box-shadow: 0 2px 8px rgba(10, 9, 8, 0.16);
+          border: 1px solid #0d0c0b;
+          box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
           cursor: pointer;
           font-family: inherit;
           transition: transform 0.2s var(--ease), background 0.2s var(--ease), box-shadow 0.2s var(--ease);
         }
 
         .landing-btn-primary:hover,
-        .landing-btn-primary:focus-visible,
-        .landing-btn-secondary:hover,
-        .landing-btn-secondary:focus-visible {
-          transform: translateY(-2px);
-          background: #1f1e1c !important;
-          color: #ffffff !important;
-          box-shadow: 0 4px 14px rgba(10, 9, 8, 0.26);
+        .landing-btn-primary:focus-visible {
+          transform: translateY(-1px);
+          background: #242220;
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
         }
 
-        .landing-btn-primary:focus-visible,
-        .landing-btn-secondary:focus-visible {
-          outline: 2px solid #0a0908;
+        .landing-btn-primary:focus-visible {
+          outline: 2px solid #0d0c0b;
           outline-offset: 2px;
+        }
+
+        .landing-btn-secondary {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 42px;
+          height: 44px;
+          padding: 0 20px;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.9);
+          color: #0d0c0b;
+          font-size: 14px;
+          font-weight: 500;
+          letter-spacing: -0.01em;
+          text-decoration: none;
+          white-space: nowrap;
+          border: 1px solid var(--rule);
+          box-shadow: 0 1px 3px rgba(13, 12, 11, 0.05);
+          cursor: pointer;
+          font-family: inherit;
+          backdrop-filter: blur(8px);
+          transition: background 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.2s var(--ease);
+        }
+
+        .landing-btn-secondary:hover,
+        .landing-btn-secondary:focus-visible {
+          background: #ffffff;
+          border-color: rgba(13, 12, 11, 0.3);
+          transform: translateY(-1px);
         }
 
         .landing-panels {
@@ -538,47 +545,43 @@ export default function ScrollScrubbedLanding() {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 13.5px;
-          letter-spacing: -0.01em;
-          color: rgba(13, 12, 11, 0.52);
-          margin-bottom: clamp(14px, 1.8vw, 20px);
+          flex-wrap: wrap;
+          gap: 6px 12px;
+          font-size: 12.5px;
+          letter-spacing: 0.045em;
+          color: var(--fg-soft);
+          margin-bottom: clamp(16px, 2vw, 22px);
+          max-width: min(46ch, 100%);
           text-align: center;
-          font-weight: 400;
         }
 
         .landing-h1 {
-          font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
-          font-weight: 500;
-          font-style: normal;
-          font-size: clamp(38px, 6.8vw, 88px);
-          line-height: 1.01;
-          letter-spacing: -0.038em;
-          max-width: 16ch;
+          font-weight: 400;
+          font-size: clamp(34px, 7.1vw, 104px);
+          line-height: 0.98;
+          letter-spacing: -0.036em;
+          max-width: 15ch;
           text-wrap: balance;
-          color: #0d0c0b;
-          text-align: center;
+          color: var(--fg);
         }
 
         .landing-sub {
-          margin-top: clamp(16px, 2vw, 24px);
-          font-size: clamp(14.5px, 1.22vw, 17px);
+          margin-top: clamp(18px, 2.2vw, 28px);
+          font-size: clamp(15px, 1.28vw, 19px);
           line-height: 1.5;
           letter-spacing: -0.008em;
-          color: rgba(13, 12, 11, 0.68);
-          max-width: min(44ch, 100%);
+          color: var(--fg-soft);
+          max-width: min(46ch, 100%);
           text-wrap: pretty;
-          text-align: center;
         }
 
         .landing-cta {
-          margin-top: clamp(24px, 3vw, 36px);
+          margin-top: clamp(28px, 3.4vw, 44px);
           pointer-events: auto;
           width: 100%;
           display: flex;
-          flex-direction: row;
-          align-items: center;
           justify-content: center;
-          gap: 14px;
+          gap: 12px;
         }
 
         .landing-foot {
@@ -700,35 +703,25 @@ export default function ScrollScrubbedLanding() {
 
       {/* Four Cross-Fading Text Panels */}
       <main className="landing-panels">
-        {/* Panel 1: Lost Log (1st text change) */}
+        {/* Panel 1 (1st text change) */}
         <section ref={panel0Ref} className="landing-panel" data-panel id="lost">
           <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
           <h1 className="landing-h1">
-            Upload a photo.<br />We sync the rest.
+            Upload a photo,<br />We sync the rest.
           </h1>
           <p className="landing-sub">
-            Don&apos;t rely on handwritten registers or scattered WhatsApp groups. Our Al compares your missing item against everything found on campus in seconds.
+            Don&apos;t rely on handwritten registers or scattered WhatsApp groups. Our AI compares your missing item against everything found on campus in seconds.
           </p>
           <div className="landing-cta">
-            <button
-              type="button"
-              onClick={() => {
-                setReportType('lost');
-                setIsReportOpen(true);
-              }}
-              className="landing-btn-primary"
-            >
+            <Link href="/lost" className="landing-btn-primary">
               Report a Lost item
-            </button>
-            <Link href="/lost" className="landing-btn-secondary">
-              Lost Log
             </Link>
           </div>
         </section>
 
-        {/* Panel 2: Found Log (2nd text change) */}
+        {/* Panel 2 (2nd text change) */}
         <section ref={panel1Ref} className="landing-panel" data-panel id="found">
-          <p className="landing-eyebrow">Discovered Items &middot; Safe Return</p>
+          <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
           <h1 className="landing-h1">
             Found by chance,<br />Returning by choice.
           </h1>
@@ -736,25 +729,15 @@ export default function ScrollScrubbedLanding() {
             Found an item by chance that belongs to someone else and looking to return it. If you lost something recently, please reach out with a description so it can safely make its way back home.
           </p>
           <div className="landing-cta">
-            <button
-              type="button"
-              onClick={() => {
-                setReportType('found');
-                setIsReportOpen(true);
-              }}
-              className="landing-btn-primary"
-            >
+            <Link href="/found" className="landing-btn-primary">
               Report a Found item
-            </button>
-            <Link href="/found" className="landing-btn-secondary">
-              Found Log
             </Link>
           </div>
         </section>
 
-        {/* Panel 3: Matches (3rd text change) */}
+        {/* Panel 3 (3rd text change) */}
         <section ref={panel2Ref} className="landing-panel" data-panel id="matches">
-          <p className="landing-eyebrow">Multimodal AI &middot; Instant Matching</p>
+          <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
           <h1 className="landing-h1">
             The ultimate matchmaker<br />for missing things.
           </h1>
@@ -768,9 +751,9 @@ export default function ScrollScrubbedLanding() {
           </div>
         </section>
 
-        {/* Panel 4: Dashboard (At last after scrolling whole home page) */}
+        {/* Panel 4 (4th text change) */}
         <section ref={panel3Ref} className="landing-panel" data-panel id="dashboard">
-          <p className="landing-eyebrow">Control Center &middot; Live Status</p>
+          <p className="landing-eyebrow">Smart Matching &middot; Zero Friction</p>
           <h1 className="landing-h1">
             Hold tight,<br />loading your main dashboard.
           </h1>
@@ -780,9 +763,6 @@ export default function ScrollScrubbedLanding() {
           <div className="landing-cta">
             <Link href="/dashboard" className="landing-btn-primary">
               Here you go
-            </Link>
-            <Link href="/dashboard" className="landing-btn-secondary">
-              Dashboard
             </Link>
           </div>
         </section>

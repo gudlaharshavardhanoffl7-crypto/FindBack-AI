@@ -6,17 +6,17 @@ import { Radar } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-white mt-auto relative z-10 text-slate-700">
+    <footer className="border-t border-black/10 bg-white/90 backdrop-blur-md mt-auto relative z-10 text-[#0d0c0b]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand Column */}
           <div className="space-y-3 md:col-span-2">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-[#0d0c0b] text-white flex items-center justify-center shadow-xs">
                 <Radar className="w-4 h-4 text-white" />
               </div>
-              <span className="text-sm font-bold tracking-tight text-slate-900">
-                FIND BACK <span className="text-black font-mono text-xs px-1 py-0.5 rounded bg-slate-100">AI</span>
+              <span className="text-sm font-bold tracking-tight text-[#0d0c0b]">
+                FIND BACK <span className="text-sky-600 font-mono text-xs">AI</span>
               </span>
             </div>
             <p className="text-xs text-slate-600 max-w-sm leading-relaxed">
@@ -91,7 +91,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Line */}
-        <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-2">
+        <div className="pt-6 border-t border-black/10 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-2">
           <span>Find Back with AI. All rights reserved.</span>
           <div className="flex items-center space-x-4">
             <Link href="/privacy" className="hover:text-black transition-colors">

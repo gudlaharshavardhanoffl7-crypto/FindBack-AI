@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
+  --background: #faf9f6;
   --foreground: #0d0c0b;
-  --border-glass: rgba(0, 0, 0, 0.08);
-  --bg-glass: rgba(255, 255, 255, 0.95);
+  --border-glass: rgba(13, 12, 11, 0.08);
+  --bg-glass: rgba(255, 255, 255, 0.85);
 }
 
 * {
@@ -21,45 +21,42 @@ html, body {
   min-height: 100vh;
 }
 
-/* Glassmorphism primitives - Clean White Theme */
+/* Light Glassmorphism primitives matching homepage theme */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.05);
-  color: #0d0c0b;
+  border: 1px solid rgba(13, 12, 11, 0.08);
+  box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.04);
 }
 
 .glass-panel-subtle {
-  background: rgba(248, 247, 244, 0.85);
+  background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  color: #0d0c0b;
+  border: 1px solid rgba(13, 12, 11, 0.06);
 }
 
 .glass-card {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(13, 12, 11, 0.09);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  color: #0d0c0b;
 }
 
 .glass-card:hover {
   background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.18);
-  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.08);
+  border-color: rgba(13, 12, 11, 0.24);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.08);
 }
 
 .glass-input {
   background: #ffffff;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(13, 12, 11, 0.16);
   color: #0d0c0b;
   transition: all 0.2s ease;
 }
@@ -76,20 +73,20 @@ html, body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(242, 240, 236, 0.8);
+  background: rgba(242, 240, 236, 0.6);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(13, 12, 11, 0.2);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(13, 12, 11, 0.45);
 }
 
-/* Grid overlay background */
+/* Subtle dot/grid overlay background */
 .bg-grid-pattern {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(13, 12, 11, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(13, 12, 11, 0.03) 1px, transparent 1px);
 }

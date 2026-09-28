@@ -21,7 +21,7 @@ export default function ItemCard({ item, onInspect }: ItemCardProps) {
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
-      className="rounded-xl p-4 sm:p-5 flex flex-col justify-between bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden"
+      className="bg-white rounded-2xl p-4 sm:p-5 flex flex-col justify-between border border-black/10 shadow-xs hover:shadow-lg transition-all group cursor-pointer relative overflow-hidden text-[#0d0c0b]"
       onClick={() => onInspect && onInspect(item)}
     >
       {/* Top Tag Row */}
@@ -29,15 +29,15 @@ export default function ItemCard({ item, onInspect }: ItemCardProps) {
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center space-x-2">
             <span
-              className={`px-2.5 py-0.5 rounded text-[10px] font-mono uppercase font-semibold border ${
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase font-semibold border ${
                 isFound
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-rose-50 text-rose-700 border-rose-200'
+                  : 'bg-slate-100 text-slate-800 border-slate-200'
               }`}
             >
               {isFound ? 'Discovered Item' : 'Lost Item'}
             </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono text-slate-600 bg-slate-100 border border-slate-200">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono text-slate-600 bg-slate-50 border border-black/5">
               {item.category}
             </span>
           </div>
@@ -50,18 +50,19 @@ export default function ItemCard({ item, onInspect }: ItemCardProps) {
 
         {/* Thumbnail preview if available */}
         {item.image_url && (
-          <div className="w-full h-36 mb-3 rounded-lg overflow-hidden border border-slate-200 relative bg-slate-100">
+          <div className="w-full h-40 mb-3 rounded-xl overflow-hidden border border-black/10 relative bg-slate-100">
             <img
               src={item.image_url}
               alt={item.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
           </div>
         )}
 
         {/* Title */}
-        <h3 className="text-sm font-bold text-slate-900 tracking-tight group-hover:text-black transition-colors mb-1.5">
+        <h3 className="text-sm font-semibold text-slate-900 group-hover:text-black transition-colors mb-1.5 line-clamp-1">
           {item.title}
         </h3>
 
@@ -72,11 +73,11 @@ export default function ItemCard({ item, onInspect }: ItemCardProps) {
       </div>
 
       {/* Footer Info */}
-      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+      <div className="pt-3 border-t border-black/5 flex items-center justify-between text-xs">
         <div className="flex items-center space-x-1 text-slate-500 truncate max-w-[190px]">
-          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+          <MapPin className="w-3 h-3 text-slate-700 shrink-0" />
           <span className="truncate text-[11px]">
-            {item.location_name || 'Campus Grounds'}
+            {item.location_name || 'Campus Zone'}
           </span>
         </div>
 
@@ -86,7 +87,7 @@ export default function ItemCard({ item, onInspect }: ItemCardProps) {
             e.stopPropagation();
             if (onInspect) onInspect(item);
           }}
-          className="flex items-center space-x-1 text-[11px] font-semibold text-black hover:underline"
+          className="flex items-center space-x-1 text-[11px] font-semibold text-[#0d0c0b] group-hover:underline"
         >
           <span>Inspect</span>
           <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />

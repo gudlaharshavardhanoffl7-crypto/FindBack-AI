@@ -8,26 +8,26 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-      <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-6 sm:p-10 border border-slate-200/80 space-y-8 shadow-sm">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10 text-[#0d0c0b]">
+      <div className="bg-white rounded-2xl p-6 sm:p-10 border border-black/10 space-y-8 shadow-sm">
         {/* Header */}
-        <div className="border-b border-slate-200/80 pb-6">
-          <div className="flex items-center space-x-2 text-slate-700 font-mono text-xs uppercase tracking-wider mb-2 font-medium">
-            <Scale className="w-4 h-4 text-slate-900" />
+        <div className="border-b border-black/10 pb-6">
+          <div className="flex items-center space-x-2 text-slate-600 font-mono text-xs uppercase tracking-wider mb-2">
+            <Scale className="w-4 h-4 text-slate-800" />
             <span>Legal Framework</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Terms and Conditions of Service
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Last Updated: September 27, 2026. Standard governing physical property recovery network operations.
+            Last Updated: September 2026. Standard governing physical property recovery network operations.
           </p>
         </div>
 
         {/* Section 1: Acceptance */}
         <section className="space-y-3">
           <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-slate-900" />
+            <FileText className="w-4 h-4 text-slate-800" />
             <span>1. Acceptance of Terms</span>
           </h2>
           <p className="text-xs text-slate-600 leading-relaxed">
@@ -40,7 +40,7 @@ export default function TermsPage() {
         {/* Section 2: Truthfulness */}
         <section className="space-y-3">
           <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-slate-900" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>2. Truthful and Accurate Item Reporting</span>
           </h2>
           <p className="text-xs text-slate-600 leading-relaxed">
@@ -53,15 +53,15 @@ export default function TermsPage() {
         {/* Section 3: Physical Safety */}
         <section className="space-y-3">
           <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-slate-900" />
+            <ShieldAlert className="w-4 h-4 text-amber-600" />
             <span>3. Physical Exchange and Safe Handover Rules</span>
           </h2>
           <p className="text-xs text-slate-600 leading-relaxed">
             Find Back with AI provides vector matching intelligence and does not directly store physical property.
             When coordinating the return of identified items, users must adhere to strict safety practices:
           </p>
-          <ul className="space-y-2 text-xs text-slate-500 list-disc list-inside pl-2">
-            <li>Conduct physical handovers only in well-lit, public facilities (police station lobbies, subway customer service centers, bank vestibules).</li>
+          <ul className="space-y-2 text-xs text-slate-600 list-disc list-inside pl-2">
+            <li>Conduct physical handovers only in well-lit, public facilities (campus security desks, library reception, verified lockers).</li>
             <li>Do not agree to meet in isolated locations or private residential addresses.</li>
             <li>Verify item ownership through proof of purchase, serial validation, or device unlock passwords before surrender.</li>
           </ul>
@@ -70,7 +70,7 @@ export default function TermsPage() {
         {/* Section 4: Limitation of Liability */}
         <section className="space-y-3">
           <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-            <Scale className="w-4 h-4 text-slate-900" />
+            <Scale className="w-4 h-4 text-slate-800" />
             <span>4. Limitation of Liability</span>
           </h2>
           <p className="text-xs text-slate-600 leading-relaxed">
@@ -81,7 +81,7 @@ export default function TermsPage() {
         </section>
 
         {/* Section 5: Modification */}
-        <section className="space-y-3 border-t border-slate-200/80 pt-6">
+        <section className="space-y-3 border-t border-black/10 pt-6">
           <h2 className="text-base font-semibold text-slate-900">5. Revisions and Inquiries</h2>
           <p className="text-xs text-slate-600 leading-relaxed">
             We reserve the right to amend these guidelines to maintain compliance with jurisdictional lost property
