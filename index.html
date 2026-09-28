@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Find Back with AI - Smart Item Recovery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://d2ol7oe51mr4n9.cloudfront.net" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%230d0c0b' d='M16 2 L19.5 12.5 L30 16 L19.5 19.5 L16 30 L12.5 19.5 L2 16 L12.5 12.5 Z'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --fg: #0d0c0b;
+      --fg-soft: rgba(13, 12, 11, .64);
+      --fg-faint: rgba(13, 12, 11, .42);
+      --shade: #f2f0ec;
+      --rule: rgba(13, 12, 11, .16);
+      --ease: cubic-bezier(.22, .61, .36, 1);
+      --pill-bg: #0a0908;
+      --pill-fg: #ffffff;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      background: var(--shade);
+      color: var(--fg);
+      font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Entrance Reveal Animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Preloader */
+    .boot {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: var(--shade);
+      transition: opacity .6s var(--ease), visibility .6s var(--ease);
+    }
+
+    .boot.done {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .boot .bar {
+      width: min(200px, 50vw);
+      height: 2px;
+      background: var(--rule);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .boot .bar i {
+      position: absolute;
+      inset: 0;
+      display: block;
+      background: var(--fg);
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      transition: transform .1s linear;
+    }
+
+    .boot p {
+      font-size: 11px;
+      letter-spacing: .08em;
+      color: var(--fg-faint);
+      font-variant-numeric: tabular-nums;
+      font-family: inherit;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    /* Fixed Background Video Layer */
+    .stage {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: var(--shade);
+    }
+
+    .stage video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      transform: translate(-50%, -50%) scale(1.02);
+      object-fit: cover;
+      filter: contrast(1.02);
+      will-change: transform;
+    }
+
+    .veil {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to bottom, rgba(242, 240, 236, .62) 0%, rgba(242, 240, 236, .12) 22%, rgba(242, 240, 236, .12) 78%, rgba(242, 240, 236, .66) 100%),
+        radial-gradient(100% 80% at 50% 48%, rgba(242, 240, 236, 0) 0%, rgba(242, 240, 236, .34) 100%),
+        rgba(242, 240, 236, .20);
+    }
+
+    .grain {
+      position: absolute;
+      inset: -50%;
+      opacity: .13;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.5'/></svg>");
+    }
+
+    /* Scroll Meter */
+    .meter {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 50;
+      height: 2px;
+      width: 100%;
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      background: var(--fg);
+      opacity: .55;
+      will-change: transform;
+    }
+
+    /* Chrome (Navbar) */
+    .chrome {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: max(14px, calc(env(safe-area-inset-top, 0px) + 12px)) clamp(16px, 3.4vw, 44px) 14px;
+      background: linear-gradient(to bottom, rgba(242, 240, 236, .94) 0%, rgba(242, 240, 236, .78) 72%, rgba(242, 240, 236, 0) 100%);
+    }
+
+    .mark {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -.012em;
+      color: var(--fg);
+      min-width: 0;
+      flex-shrink: 1;
+      text-decoration: none;
+    }
+
+    .mark-star {
+      opacity: .85;
+      font-size: 16px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-shrink: 0;
+    }
+
+    /* Nav Link Hover Effects */
+    .nav a:not(.pill) {
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 14.5px;
+      letter-spacing: -.008em;
+      opacity: 0.6;
+      position: relative;
+      padding-bottom: 3px;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      transition: opacity 0.3s var(--ease);
+    }
+
+    .nav a:not(.pill)::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 0;
+      width: 100%;
+      height: 1.5px;
+      background-color: var(--fg);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.3s var(--ease);
+    }
+
+    .nav a:not(.pill):hover {
+      opacity: 1;
+    }
+
+    .nav a:not(.pill):hover::after {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+
+    .nav-icons {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-left: 12px;
+    }
+
+    #notifBtn {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      min-width: 36px;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      color: var(--fg);
+      transition: transform 0.2s var(--ease), background 0.2s var(--ease);
+      padding: 0;
+    }
+
+    #notifBtn:hover {
+      background: rgba(13, 12, 11, 0.06);
+      transform: scale(1.05);
+    }
+
+    #notifBtn:active {
+      transform: scale(0.95);
+    }
+
+    /* Pill Button */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      height: 40px;
+      padding: 0 21px;
+      border-radius: 999px;
+      background: var(--pill-bg);
+      color: var(--pill-fg);
+      font-size: 14.5px;
+      font-weight: 500;
+      letter-spacing: -.008em;
+      text-decoration: none;
+      white-space: nowrap;
+      border: 1px solid rgba(10, 9, 8, .12);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, .10) inset;
+      -webkit-text-fill-color: var(--pill-fg);
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform .4s var(--ease), background .3s var(--ease), color .3s var(--ease);
+    }
+
+    .nav .pill {
+      color: #fff;
+      -webkit-text-fill-color: #fff;
+    }
+
+    .pill:hover,
+    .pill:focus-visible {
+      transform: translateY(-2px);
+      background: #000;
+      color: #fff;
+      -webkit-text-fill-color: #fff;
+    }
+
+    .pill:focus-visible {
+      outline: 2px solid var(--fg);
+      outline-offset: 2px;
+    }
+
+    /* Panels Layer */
+    .panels {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .panel {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: max(104px, calc(env(safe-area-inset-top, 0px) + 88px)) clamp(20px, 5vw, 60px) max(96px, calc(env(safe-area-inset-bottom, 0px) + 80px));
+      opacity: 0;
+      will-change: opacity, transform;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      font-size: 12.5px;
+      letter-spacing: .045em;
+      color: var(--fg-soft);
+      margin-bottom: clamp(16px, 2vw, 22px);
+      max-width: min(46ch, 100%);
+      text-align: center;
+    }
+
+    h1 {
+      font-weight: 400;
+      font-size: clamp(34px, 7.1vw, 104px);
+      line-height: .98;
+      letter-spacing: -.036em;
+      max-width: 15ch;
+      text-wrap: balance;
+    }
+
+    .sub {
+      margin-top: clamp(18px, 2.2vw, 28px);
+      font-size: clamp(15px, 1.28vw, 19px);
+      line-height: 1.5;
+      letter-spacing: -.008em;
+      color: var(--fg-soft);
+      max-width: min(46ch, 100%);
+      text-wrap: pretty;
+    }
+
+    .cta {
+      margin-top: clamp(28px, 3.4vw, 44px);
+      pointer-events: auto;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .cta .pill {
+      height: 48px;
+      padding: 0 27px;
+      font-size: 15px;
+      max-width: min(100%, 320px);
+    }
+
+    /* Supabase Auth Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(242, 240, 236, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.4s var(--ease);
+      padding: 20px;
+    }
+
+    .modal.active {
+      opacity: 1;
+    }
+
+    .modal-content {
+      position: relative;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      border: 1px solid var(--rule);
+      width: 100%;
+      max-width: 400px;
+      transform: translateY(20px);
+      transition: transform 0.4s var(--ease);
+      text-align: center;
+      box-shadow: 0 24px 48px -12px rgba(13, 12, 11, 0.12);
+    }
+
+    .modal.active .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      line-height: 1;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--fg-soft);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s var(--ease), background 0.2s var(--ease);
+    }
+
+    .modal-close:hover {
+      color: var(--fg);
+      background: rgba(13, 12, 11, 0.06);
+    }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: var(--fg);
+    }
+
+    .modal-subtitle {
+      font-size: 13.5px;
+      color: var(--fg-soft);
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      text-align: left;
+    }
+
+    .auth-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .auth-label {
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--fg-soft);
+      text-transform: uppercase;
+    }
+
+    .auth-input {
+      width: 100%;
+      min-height: 42px;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 8px;
+      border: 1px solid var(--rule);
+      background: var(--shade);
+      color: var(--fg);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+    }
+
+    .auth-input:focus {
+      border-color: var(--fg);
+      box-shadow: 0 0 0 2px rgba(13, 12, 11, 0.08);
+    }
+
+    .auth-submit {
+      width: 100%;
+      height: 44px;
+      margin-top: 6px;
+      border: none;
+    }
+
+    .modal-note {
+      margin-top: 20px;
+      font-size: 11.5px;
+      color: var(--fg-faint);
+      letter-spacing: 0.02em;
+    }
+
+    /* Footer */
+    .foot {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      display: flex;
+      justify-content: center;
+      padding: 14px clamp(16px, 4vw, 24px) max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+      font-size: 12px;
+      line-height: 1.45;
+      letter-spacing: .02em;
+      color: var(--fg-faint);
+      text-align: center;
+      pointer-events: none;
+      background: linear-gradient(to top, rgba(242, 240, 236, .92) 0%, rgba(242, 240, 236, .72) 72%, rgba(242, 240, 236, 0) 100%);
+    }
+
+    /* Scroll Track */
+    .track {
+      position: relative;
+      z-index: 1;
+      height: 560vh;
+      min-height: 3200px;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 768px) {
+      .nav a:not(.pill) {
+        display: none;
+      }
+      .chrome {
+        padding: max(12px, calc(env(safe-area-inset-top, 0px) + 8px)) clamp(16px, 4vw, 24px) 12px;
+      }
+      .panel {
+        padding: max(88px, calc(env(safe-area-inset-top, 0px) + 72px)) clamp(16px, 4vw, 24px) max(84px, calc(env(safe-area-inset-bottom, 0px) + 68px));
+      }
+      h1 {
+        font-size: clamp(32px, 8.2vw, 56px);
+        line-height: 1.02;
+      }
+      .sub {
+        font-size: 15px;
+        margin-top: 16px;
+      }
+      .cta {
+        margin-top: 24px;
+      }
+      .cta .pill {
+        height: 44px;
+        padding: 0 22px;
+        font-size: 14.5px;
+      }
+      .modal-content {
+        padding: 32px 24px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .mark {
+        font-size: 14.5px;
+      }
+      .nav .pill {
+        height: 36px;
+        padding: 0 16px;
+        font-size: 13.5px;
+      }
+      .panel {
+        padding: max(76px, calc(env(safe-area-inset-top, 0px) + 60px)) 16px max(74px, calc(env(safe-area-inset-bottom, 0px) + 56px));
+      }
+      h1 {
+        font-size: clamp(28px, 8vw, 42px);
+      }
+      .sub {
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      .foot {
+        font-size: 11px;
+        padding: 10px 14px max(12px, calc(env(safe-area-inset-bottom, 0px) + 8px));
+      }
+    }
+
+    @media (max-height: 520px) and (orientation: landscape) {
+      .chrome {
+        padding: 8px 20px;
+      }
+      .panel {
+        padding: 48px 20px 32px;
+      }
+      h1 {
+        font-size: clamp(22px, 4.8vw, 32px);
+        line-height: 1.05;
+      }
+      .sub {
+        font-size: 13px;
+        margin-top: 8px;
+      }
+      .cta {
+        margin-top: 12px;
+      }
+      .cta .pill {
+        height: 38px;
+        padding: 0 18px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .panel {
+        will-change: auto;
+      }
+      .pill, .reveal {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Preloader -->
+  <div class="boot" id="boot">
+    <div class="bar"><i id="bootBar"></i></div>
+    <p id="bootPct">LOADING 0%</p>
+  </div>
+
+  <!-- Fixed Background Video Layer -->
+  <div class="stage">
+    <video id="clip" muted playsinline preload="auto" disablepictureinpicture></video>
+    <div class="veil"></div>
+    <div class="grain"></div>
+  </div>
+
+  <!-- Scroll Meter -->
+  <i class="meter" id="meter"></i>
+
+  <!-- Chrome (Navbar) -->
+  <header class="chrome reveal">
+    <a href="#home" class="mark">
+      <span class="mark-star" aria-hidden="true">&#10037;</span>&nbsp;Find Back with AI
+    </a>
+    <nav class="nav">
+      <a href="#home">Home page</a>
+      <a href="#lost">Lost log</a>
+      <a href="#found">Found log</a>
+      <a href="#matches">Matches</a>
+      <a href="#map">Map View</a>
+      <div class="nav-icons">
+        <button id="notifBtn" aria-label="Notifications" title="Notifications">&#128276;</button>
+        <button id="profileBtn" class="pill">&#128100; Login</button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Three Text Panels Cross-Fading Over Video -->
+  <main class="panels">
+    <!-- Panel 1 -->
+    <section class="panel" data-panel id="panel-lost">
+      <p class="eyebrow">Smart Campus Recovery <span>&middot;</span> AI Powered</p>
+      <h1>Lost it?<br />We'll match it.</h1>
+      <p class="sub">Upload a photo or description of your misplaced item. Our AI instantly scans the campus found-log.</p>
+      <div class="cta">
+        <a class="pill" href="#lost">Log a Lost Item</a>
+      </div>
+    </section>
+
+    <!-- Panel 2 -->
+    <section class="panel" data-panel id="panel-found">
+      <p class="eyebrow">The Found Log</p>
+      <h1>Found something?<br />Secure it.</h1>
+      <p class="sub">Drop a pin on the map and log the item. Help return keys, wallets, and devices to their owners.</p>
+      <div class="cta">
+        <a class="pill" href="#found">Log a Found Item</a>
+      </div>
+    </section>
+
+    <!-- Panel 3 -->
+    <section class="panel" data-panel id="panel-matches">
+      <p class="eyebrow">Instant Connections</p>
+      <h1>Matched in<br />milliseconds.</h1>
+      <p class="sub">When the AI embeddings align, both parties are securely notified to coordinate the return via Map View.</p>
+      <div class="cta">
+        <a class="pill" href="#matches">View My Matches</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Supabase Auth Modal (UI Only) -->
+  <div id="authModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content">
+      <button class="modal-close" id="modalCloseBtn" aria-label="Close modal">&times;</button>
+      <h2 class="modal-title" id="modalTitle">Account Login</h2>
+      <p class="modal-subtitle">Enter your email or phone to receive a one-time passcode and manage your campus items.</p>
+      <form class="auth-form" id="authForm" onsubmit="event.preventDefault();">
+        <div class="auth-group">
+          <label class="auth-label" for="authEmail">Email Address</label>
+          <input type="email" id="authEmail" class="auth-input" placeholder="student@university.edu" required autocomplete="email">
+        </div>
+        <div class="auth-group">
+          <label class="auth-label" for="authPhone">Phone Number</label>
+          <input type="tel" id="authPhone" class="auth-input" placeholder="+1 (555) 000-0000" autocomplete="tel">
+        </div>
+        <button type="submit" class="pill auth-submit">Send OTP</button>
+      </form>
+      <p class="modal-note">Powered by Supabase Auth</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="foot reveal">Secure Campus Item Recovery &middot; AI Matching</footer>
+
+  <!-- Scroll Track Element -->
+  <div class="track"></div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    (function () {
+      "use strict";
+
+      // Video is all-intra keyframes for instant scroll scrubbing
+      var VIDEO_URL = "https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/45567745-d826-44a2-a5ce-7ef670944e60.mp4";
+
+      var clip = document.getElementById("clip");
+      var boot = document.getElementById("boot");
+      var bootBar = document.getElementById("bootBar");
+      var bootPct = document.getElementById("bootPct");
+      var meter = document.getElementById("meter");
+      var panels = [].slice.call(document.querySelectorAll("[data-panel]"));
+
+      // Deliberate dead zones between cues so two panels are never readable at once
+      var CUES = [
+        [0.00, 0.00, 0.15, 0.23],
+        [0.35, 0.43, 0.57, 0.65],
+        [0.77, 0.85, 1.10, 1.20]
+      ];
+      var DRIFT = 22; // px of counter-scroll travel per panel
+
+      var targetProgress = 0;
+      var currentProgress = 0;
+      var seekAt = 0;
+      var EASE = 0.08;
+      var isReady = false;
+      var rafId = null;
+
+      function setBootProgress(pct) {
+        var p = Math.max(0, Math.min(1, pct));
+        if (bootBar) {
+          bootBar.style.transform = "scaleX(" + p + ")";
+        }
+        if (bootPct) {
+          bootPct.textContent = "LOADING " + Math.round(p * 100) + "%";
+        }
+      }
+
+      function start() {
+        if (isReady) return;
+        isReady = true;
+        unlockVideo();
+        setBootProgress(1);
+        setTimeout(function () {
+          if (boot) {
+            boot.classList.add("done");
+          }
+          setTimeout(function () {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+              reveals[i].classList.add("active");
+            }
+          }, 300);
+        }, 240);
+        startLoop();
+      }
+
+      function unlockVideo() {
+        if (!clip) return;
+        if (clip.paused) {
+          var playPromise = clip.play();
+          if (playPromise !== undefined && typeof playPromise.then === "function") {
+            playPromise.then(function () {
+              clip.pause();
+            }).catch(function () {});
+          } else {
+            clip.pause();
+          }
+        }
+      }
+
+      function onFirstInteraction() {
+        unlockVideo();
+        window.removeEventListener("touchstart", onFirstInteraction);
+        window.removeEventListener("pointerdown", onFirstInteraction);
+        window.removeEventListener("click", onFirstInteraction);
+      }
+      window.addEventListener("touchstart", onFirstInteraction, { passive: true, once: true });
+      window.addEventListener("pointerdown", onFirstInteraction, { passive: true, once: true });
+      window.addEventListener("click", onFirstInteraction, { passive: true, once: true });
+
+      function bindClipEvents() {
+        if (!clip) return;
+        clip.addEventListener("loadedmetadata", function () {
+          try {
+            clip.currentTime = 0.001;
+          } catch (e) {}
+        });
+        clip.addEventListener("canplay", function () {
+          start();
+        });
+        clip.addEventListener("canplaythrough", function () {
+          start();
+        });
+        setTimeout(function () {
+          start();
+        }, 3500);
+      }
+
+      function fallbackDirect() {
+        if (!clip) return;
+        clip.src = VIDEO_URL;
+        bindClipEvents();
+      }
+
+      function preloadBlob() {
+        try {
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", VIDEO_URL, true);
+          xhr.responseType = "blob";
+
+          xhr.onprogress = function (e) {
+            if (e.lengthComputable && e.total > 0) {
+              setBootProgress(e.loaded / e.total);
+            }
+          };
+
+          xhr.onload = function () {
+            if (xhr.status >= 200 && xhr.status < 300 && xhr.response) {
+              try {
+                var blobUrl = URL.createObjectURL(xhr.response);
+                clip.src = blobUrl;
+                bindClipEvents();
+                return;
+              } catch (err) {
+                fallbackDirect();
+              }
+            } else {
+              fallbackDirect();
+            }
+          };
+
+          xhr.onerror = function () {
+            fallbackDirect();
+          };
+
+          xhr.send();
+        } catch (e) {
+          fallbackDirect();
+        }
+      }
+
+      function calculateTargetProgress() {
+        var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        if (maxScroll <= 0) return 0;
+        var st = window.pageYOffset || document.documentElement.scrollTop || 0;
+        return Math.max(0, Math.min(1, st / maxScroll));
+      }
+
+      function onScroll() {
+        targetProgress = calculateTargetProgress();
+      }
+
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll, { passive: true });
+
+      function updatePanels(p) {
+        for (var i = 0; i < panels.length; i++) {
+          var cue = CUES[i];
+          if (!cue) continue;
+          var a = cue[0], b = cue[1], c = cue[2], d = cue[3];
+          var opacity = 0;
+          var y = 0;
+
+          if (p < a) {
+            opacity = 0;
+            y = DRIFT;
+          } else if (p > d) {
+            opacity = 0;
+            y = -DRIFT;
+          } else {
+            if (b === a) {
+              if (p <= c) {
+                opacity = 1;
+              } else {
+                opacity = d > c ? 1 - (p - c) / (d - c) : 0;
+              }
+            } else if (p < b) {
+              opacity = (p - a) / (b - a);
+            } else if (p <= c) {
+              opacity = 1;
+            } else {
+              opacity = d > c ? 1 - (p - c) / (d - c) : 0;
+            }
+
+            var u = d > a ? (p - a) / (d - a) : 0;
+            y = (0.5 - u) * (DRIFT * 2);
+          }
+
+          opacity = Math.max(0, Math.min(1, opacity));
+          var panel = panels[i];
+          panel.style.opacity = opacity.toFixed(4);
+          panel.style.transform = "translate3d(0," + y.toFixed(2) + "px, 0)";
+          panel.style.pointerEvents = opacity > 0.6 ? "auto" : "none";
+          panel.style.visibility = opacity > 0.001 ? "visible" : "hidden";
+        }
+      }
+
+      function loop() {
+        rafId = requestAnimationFrame(loop);
+
+        currentProgress += (targetProgress - currentProgress) * EASE;
+        if (Math.abs(targetProgress - currentProgress) < 0.0001) {
+          currentProgress = targetProgress;
+        }
+
+        if (meter) {
+          meter.style.transform = "scaleX(" + currentProgress.toFixed(4) + ")";
+        }
+
+        if (clip && clip.duration) {
+          var targetTime = currentProgress * clip.duration;
+          var gap = targetTime - seekAt;
+          if (Math.abs(gap) > 0.001) {
+            seekAt += gap * 0.115;
+            if (seekAt < 0) seekAt = 0;
+            if (seekAt > clip.duration) seekAt = clip.duration;
+            clip.currentTime = seekAt;
+          }
+        }
+
+        updatePanels(currentProgress);
+      }
+
+      function startLoop() {
+        if (!rafId) {
+          targetProgress = calculateTargetProgress();
+          currentProgress = targetProgress;
+          updatePanels(currentProgress);
+          loop();
+        }
+      }
+
+      // Supabase Auth Modal Logic
+      var authModal = document.getElementById("authModal");
+      var profileBtn = document.getElementById("profileBtn");
+      var modalCloseBtn = document.getElementById("modalCloseBtn");
+      var authForm = document.getElementById("authForm");
+
+      function openModal() {
+        if (!authModal) return;
+        authModal.style.display = "flex";
+        void authModal.offsetHeight; // trigger reflow
+        authModal.classList.add("active");
+      }
+
+      function closeModal() {
+        if (!authModal) return;
+        authModal.classList.remove("active");
+        setTimeout(function () {
+          if (!authModal.classList.contains("active")) {
+            authModal.style.display = "none";
+          }
+        }, 400);
+      }
+
+      if (profileBtn) {
+        profileBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          openModal();
+        });
+      }
+
+      if (modalCloseBtn) {
+        modalCloseBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          closeModal();
+        });
+      }
+
+      if (authModal) {
+        authModal.addEventListener("click", function (e) {
+          if (e.target === authModal) {
+            closeModal();
+          }
+        });
+      }
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && authModal && authModal.classList.contains("active")) {
+          closeModal();
+        }
+      });
+
+      if (authForm) {
+        authForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var email = document.getElementById("authEmail").value;
+          alert("One-Time Password requested for " + email + ". Check your inbox!");
+          closeModal();
+        });
+      }
+
+      // Notification button
+      var notifBtn = document.getElementById("notifBtn");
+      if (notifBtn) {
+        notifBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          alert("Notifications: Campus lost & found logs are synchronized in real-time. No unread alerts.");
+        });
+      }
+
+      // Smooth scroll on anchor link navigation
+      document.addEventListener("click", function (e) {
+        var a = e.target.closest("a");
+        if (!a) return;
+        var href = a.getAttribute("href");
+        if (!href || href.charAt(0) !== "#") return;
+        var target = href.slice(1);
+        var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        if (maxScroll <= 0) return;
+
+        if (target === "home") {
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else if (target === "lost") {
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else if (target === "found" || target === "map") {
+          e.preventDefault();
+          window.scrollTo({ top: maxScroll * 0.50, behavior: "smooth" });
+        } else if (target === "matches") {
+          e.preventDefault();
+          window.scrollTo({ top: maxScroll * 0.95, behavior: "smooth" });
+        }
+      });
+
+      // Initial execution
+      targetProgress = calculateTargetProgress();
+      currentProgress = targetProgress;
+      updatePanels(currentProgress);
+      preloadBlob();
+    })();
+  </script>
+</body>
+</html>
